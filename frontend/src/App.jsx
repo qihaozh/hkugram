@@ -7,13 +7,20 @@ import {
   getPostComments,
   getUserProfile,
   getUsers,
+  loginUser,
   toggleLike,
 } from "./api";
+
+const SESSION_KEY = "hkugram_username";
 
 const blankRegistration = {
   username: "",
   display_name: "",
   bio: "",
+};
+
+const blankLogin = {
+  username: "",
 };
 
 const blankPost = {
@@ -57,11 +64,11 @@ function CommentList({ comments }) {
   );
 }
 
-function Composer({ postForm, setPostForm, onSubmit }) {
+function Composer({ disabled, postForm, setPostForm, onSubmit }) {
   return (
     <section className="app-card">
       <div className="card-header">
-        <span className="eyebrow">I. Compose</span>
+        <span className="eyebrow">II. Compose</span>
         <h2>New Post</h2>
       </div>
       <form className="stack-form" onSubmit={onSubmit}>
@@ -74,6 +81,7 @@ function Composer({ postForm, setPostForm, onSubmit }) {
             }
             placeholder="Tell the feed what happened."
             required
+            disabled={disabled}
           />
         </label>
         <label>
@@ -88,13 +96,15 @@ function Composer({ postForm, setPostForm, onSubmit }) {
               }))
             }
             required
+            disabled={disabled}
           />
         </label>
         {postForm.imageFile ? <p className="muted-copy">Selected: {postForm.imageFile.name}</p> : null}
-        <button className="deco-button" type="submit">
+        <button className="deco-button" type="submit" disabled={disabled}>
           Publish
         </button>
       </form>
+      {disabled ? <p className="muted-copy">Log in first to publish a post.</p> : null}
     </section>
   );
 }
@@ -125,7 +135,15 @@ function PostPreviewComments({ comments, onOpenThread, commentCount }) {
   );
 }
 
-function ThreadDrawer({ post, comments, commentBody, setCommentBody, onComment, onClose }) {
+function ThreadDrawer({
+  currentUser,
+  post,
+  comments,
+  commentBody,
+  setCommentBody,
+  onComment,
+  onClose,
+}) {
   if (!post) {
     return null;
   }
@@ -135,7 +153,7 @@ function ThreadDrawer({ post, comments, commentBody, setCommentBody, onComment, 
       <aside className="thread-drawer" onClick={(event) => event.stopPropagation()}>
         <div className="thread-drawer__header">
           <div>
-            <span className="eyebrow">III. Thread</span>
+            <span className="eyebrow">IV. Thread</span>
             <h2>Open Thread</h2>
           </div>
           <button className="deco-button deco-button--ghost" onClick={onClose}>
@@ -163,14 +181,16 @@ function ThreadDrawer({ post, comments, commentBody, setCommentBody, onComment, 
             <textarea
               value={commentBody}
               onChange={(event) => setCommentBody(event.target.value)}
-              placeholder="Write into the thread"
+              placeholder={currentUser ? "Write into the thread" : "Log in to comment"}
               required
+              disabled={!currentUser}
             />
           </label>
-          <button className="deco-button" type="submit">
+          <button className="deco-button" type="submit" disabled={!currentUser}>
             Comment
           </button>
         </form>
+        {!currentUser ? <p className="muted-copy">You must log in to comment.</p> : null}
         <CommentList comments={comments} />
       </aside>
     </div>
@@ -210,7 +230,11 @@ function PostCard({ post, active, currentUserId, onLike, onOpen }) {
         <span>Comments {post.comment_count}</span>
       </div>
       <div className="feed-card__actions">
-        <button className="deco-button deco-button--ghost" onClick={() => onLike(post.id, currentUserId)}>
+        <button
+          className="deco-button deco-button--ghost"
+          onClick={() => onLike(post.id, currentUserId)}
+          disabled={!currentUserId}
+        >
           Like / Unlike
         </button>
         <button className="deco-button" onClick={() => onOpen(post)}>
@@ -231,6 +255,7 @@ export default function App() {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [status, setStatus] = useState("Loading HKUgram...");
   const [registration, setRegistration] = useState(blankRegistration);
+  const [loginForm, setLoginForm] = useState(blankLogin);
   const [postForm, setPostForm] = useState(blankPost);
   const [commentBody, setCommentBody] = useState("");
   const [isThreadOpen, setIsThreadOpen] = useState(false);
@@ -259,6 +284,19 @@ export default function App() {
     return profile;
   }
 
+  async function setLoggedInUser(user) {
+    setCurrentUser(user);
+    setLoginForm({ username: user.username });
+    localStorage.setItem(SESSION_KEY, user.username);
+    await loadProfile(user.username);
+  }
+
+  function logout() {
+    setCurrentUser(null);
+    localStorage.removeItem(SESSION_KEY);
+    setStatus("Logged out.");
+  }
+
   async function openPost(post) {
     const comments = await getPostComments(post.id);
     setSelectedPost(post);
@@ -276,12 +314,21 @@ export default function App() {
           refreshFeed("recent"),
         ]);
 
-        if (initialUsers.length) {
-          setCurrentUser(initialUsers[0]);
-          await loadProfile(initialUsers[0].username);
-          setStatus(`Logged in as @${initialUsers[0].username}`);
+        const savedUsername = localStorage.getItem(SESSION_KEY);
+        if (savedUsername) {
+          try {
+            const user = await loginUser(savedUsername);
+            await setLoggedInUser(user);
+            setStatus(`Logged in as @${user.username}`);
+          } catch {
+            localStorage.removeItem(SESSION_KEY);
+          }
         } else {
-          setStatus("Create the first account to enter HKUgram.");
+          setStatus("Log in or register to interact with HKUgram.");
+        }
+
+        if (initialUsers.length && !savedUsername) {
+          setLoginForm({ username: initialUsers[0].username });
         }
 
         if (initialFeed.length) {
@@ -295,14 +342,24 @@ export default function App() {
     bootstrap();
   }, []);
 
+  async function handleLogin(event) {
+    event.preventDefault();
+    try {
+      const user = await loginUser(loginForm.username);
+      await setLoggedInUser(user);
+      setStatus(`Logged in as @${user.username}`);
+    } catch (error) {
+      setStatus(error.message);
+    }
+  }
+
   async function handleRegister(event) {
     event.preventDefault();
     try {
       const user = await createUser(registration);
       await refreshUsers();
-      setCurrentUser(user);
+      await setLoggedInUser(user);
       setRegistration(blankRegistration);
-      await loadProfile(user.username);
       setStatus(`Account created for @${user.username}`);
     } catch (error) {
       setStatus(error.message);
@@ -341,7 +398,7 @@ export default function App() {
 
   async function handleLike(postId, userId) {
     if (!userId) {
-      setStatus("Choose a user to like posts.");
+      setStatus("Log in before liking posts.");
       return;
     }
 
@@ -363,7 +420,7 @@ export default function App() {
   async function handleComment(event) {
     event.preventDefault();
     if (!currentUser || !selectedPost) {
-      setStatus("Choose a user and a post first.");
+      setStatus("Log in and choose a post first.");
       return;
     }
 
@@ -401,7 +458,47 @@ export default function App() {
           <section className="app-card">
             <div className="card-header">
               <span className="eyebrow">I. Session</span>
-              <h2>Login / Register</h2>
+              <h2>Login</h2>
+            </div>
+            <form className="stack-form" onSubmit={handleLogin}>
+              <label>
+                Username
+                <input
+                  value={loginForm.username}
+                  onChange={(event) => setLoginForm({ username: event.target.value })}
+                  placeholder="enter your username"
+                  required
+                />
+              </label>
+              <button className="deco-button" type="submit">
+                Log In
+              </button>
+            </form>
+            {currentUser ? (
+              <button className="deco-button deco-button--ghost" onClick={logout}>
+                Log Out
+              </button>
+            ) : null}
+            <div className="user-switcher">
+              <p className="eyebrow eyebrow--small">Existing Accounts</p>
+              <div className="user-switcher__list">
+                {users.map((user) => (
+                  <button
+                    key={user.id}
+                    className="user-pill"
+                    onClick={() => setLoginForm({ username: user.username })}
+                  >
+                    @{user.username}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="app-card">
+            <div className="card-header">
+              <span className="eyebrow">II. Register</span>
+              <h2>Create Account</h2>
             </div>
             <form className="stack-form" onSubmit={handleRegister}>
               <label>
@@ -440,31 +537,18 @@ export default function App() {
                 Create Account
               </button>
             </form>
-            <div className="user-switcher">
-              <p className="eyebrow eyebrow--small">Switch User</p>
-              <div className="user-switcher__list">
-                {users.map((user) => (
-                  <button
-                    key={user.id}
-                    className={`user-pill ${currentUser?.id === user.id ? "user-pill--active" : ""}`}
-                    onClick={async () => {
-                      setCurrentUser(user);
-                      await loadProfile(user.username);
-                      setStatus(`Switched to @${user.username}`);
-                    }}
-                  >
-                    @{user.username}
-                  </button>
-                ))}
-              </div>
-            </div>
           </section>
 
-          <Composer postForm={postForm} setPostForm={setPostForm} onSubmit={handleCreatePost} />
+          <Composer
+            disabled={!currentUser}
+            postForm={postForm}
+            setPostForm={setPostForm}
+            onSubmit={handleCreatePost}
+          />
 
           <section className="app-card">
             <div className="card-header">
-              <span className="eyebrow">IV. Profile</span>
+              <span className="eyebrow">V. Profile</span>
               <h2>User History</h2>
             </div>
             {selectedProfile ? (
@@ -501,7 +585,7 @@ export default function App() {
           <section className="app-card feed-header-card">
             <div className="card-header card-header--row">
               <div>
-                <span className="eyebrow">II. Feed</span>
+                <span className="eyebrow">III. Feed</span>
                 <h2>Public Timeline</h2>
               </div>
               <div className="feed-toolbar">
@@ -546,6 +630,7 @@ export default function App() {
       </main>
 
       <ThreadDrawer
+        currentUser={currentUser}
         post={isThreadOpen ? selectedPost : null}
         comments={selectedComments}
         commentBody={commentBody}

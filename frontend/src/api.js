@@ -28,6 +28,13 @@ export function createUser(payload) {
   });
 }
 
+export function loginUser(username) {
+  return request("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username }),
+  });
+}
+
 export function getUsers() {
   return request("/users");
 }
