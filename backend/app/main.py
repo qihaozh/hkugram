@@ -52,6 +52,19 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Username already exists") from exc
 
 
+@app.get("/users", response_model=list[schemas.UserRead])
+def get_users(db: Session = Depends(get_db)):
+    return crud.list_users(db)
+
+
+@app.get("/users/{username}", response_model=schemas.UserProfileResponse)
+def get_user_profile(username: str, db: Session = Depends(get_db)):
+    profile = crud.get_user_profile(db, username)
+    if not profile:
+        raise HTTPException(status_code=404, detail="User not found")
+    return profile
+
+
 @app.get("/feed", response_model=list[schemas.PostRead])
 def get_feed(
     sort_by: str = Query(default="recent", pattern="^(recent|popular)$"),
@@ -89,6 +102,14 @@ def create_comment(post_id: int, payload: schemas.CommentCreate, db: Session = D
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return crud.create_comment(db, post_id=post_id, payload=payload)
+
+
+@app.get("/posts/{post_id}/comments", response_model=list[schemas.CommentRead])
+def get_post_comments(post_id: int, db: Session = Depends(get_db)):
+    post = db.get(models.Post, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return crud.list_post_comments(db, post_id)
 
 
 @app.get("/users/{username}/posts", response_model=list[schemas.PostRead])

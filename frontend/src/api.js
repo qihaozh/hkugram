@@ -28,6 +28,14 @@ export function createUser(payload) {
   });
 }
 
+export function getUsers() {
+  return request("/users");
+}
+
+export function getUserProfile(username) {
+  return request(`/users/${username}`);
+}
+
 export function createPost(payload) {
   return request("/posts", {
     method: "POST",
@@ -46,6 +54,10 @@ export function createComment(postId, payload) {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getPostComments(postId) {
+  return request(`/posts/${postId}/comments`);
 }
 
 export function runTextToSql(prompt) {

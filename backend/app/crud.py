@@ -21,6 +21,14 @@ def create_post(db: Session, payload: schemas.PostCreate) -> models.Post:
     return post
 
 
+def list_users(db: Session) -> list[models.User]:
+    return list(db.scalars(select(models.User).order_by(models.User.created_at.asc())))
+
+
+def get_user_by_username(db: Session, username: str) -> models.User | None:
+    return db.scalar(select(models.User).where(models.User.username == username))
+
+
 def list_feed(db: Session, sort_by: str = "recent") -> list[schemas.PostRead]:
     like_count = func.count(func.distinct(models.Like.id)).label("like_count")
     comment_count = func.count(func.distinct(models.Comment.id)).label("comment_count")
@@ -79,8 +87,27 @@ def create_comment(db: Session, post_id: int, payload: schemas.CommentCreate) ->
     return comment
 
 
+def list_post_comments(db: Session, post_id: int) -> list[schemas.CommentRead]:
+    query = (
+        select(
+            models.Comment.id,
+            models.Comment.body,
+            models.Comment.created_at,
+            models.Comment.user_id,
+            models.Comment.post_id,
+            models.User.username,
+            models.User.display_name,
+        )
+        .join(models.User, models.User.id == models.Comment.user_id)
+        .where(models.Comment.post_id == post_id)
+        .order_by(models.Comment.created_at.asc())
+    )
+    rows = db.execute(query).all()
+    return [schemas.CommentRead.model_validate(row._mapping) for row in rows]
+
+
 def list_user_posts(db: Session, username: str) -> list[schemas.PostRead]:
-    user = db.scalar(select(models.User).where(models.User.username == username))
+    user = get_user_by_username(db, username)
     if not user:
         return []
     return [
@@ -88,3 +115,34 @@ def list_user_posts(db: Session, username: str) -> list[schemas.PostRead]:
         for post in list_feed(db, sort_by="recent")
         if post.username == username
     ]
+
+
+def get_user_profile(db: Session, username: str) -> schemas.UserProfileResponse | None:
+    user = get_user_by_username(db, username)
+    if not user:
+        return None
+
+    stats_query = select(
+        func.count(func.distinct(models.Post.id)).label("post_count"),
+        func.count(func.distinct(models.Like.id)).label("total_likes_received"),
+        func.count(func.distinct(models.Comment.id)).label("total_comments_received"),
+    ).select_from(models.User)
+    stats_query = stats_query.outerjoin(models.Post, models.Post.user_id == models.User.id)
+    stats_query = stats_query.outerjoin(models.Like, models.Like.post_id == models.Post.id)
+    stats_query = stats_query.outerjoin(models.Comment, models.Comment.post_id == models.Post.id)
+    stats_query = stats_query.where(models.User.id == user.id).group_by(models.User.id)
+
+    stats_row = db.execute(stats_query).one_or_none()
+    stats = schemas.UserProfileStats(
+        post_count=0,
+        total_likes_received=0,
+        total_comments_received=0,
+    )
+    if stats_row:
+        stats = schemas.UserProfileStats.model_validate(stats_row._mapping)
+
+    return schemas.UserProfileResponse(
+        user=schemas.UserRead.model_validate(user),
+        stats=stats,
+        recent_posts=list_user_posts(db, username)[:6],
+    )

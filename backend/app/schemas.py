@@ -49,6 +49,8 @@ class CommentRead(BaseModel):
     created_at: datetime
     user_id: int
     post_id: int
+    username: str | None = None
+    display_name: str | None = None
 
 
 class LikeToggleResponse(BaseModel):
@@ -79,3 +81,15 @@ class TextToSqlResponse(BaseModel):
     columns: list[str]
     row_count: int
     rows: list[dict]
+
+
+class UserProfileStats(BaseModel):
+    post_count: int
+    total_likes_received: int
+    total_comments_received: int
+
+
+class UserProfileResponse(BaseModel):
+    user: UserRead
+    stats: UserProfileStats
+    recent_posts: list[PostRead]
