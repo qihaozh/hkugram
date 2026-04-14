@@ -5,20 +5,10 @@ import {
   createUser,
   getFeed,
   getPostComments,
-  getQuerySchema,
   getUserProfile,
   getUsers,
-  runSql,
-  runTextToSql,
   toggleLike,
 } from "./api";
-
-const showcasePrompts = [
-  "most liked posts",
-  "most active users",
-  "recent posts",
-  "comments for post 1",
-];
 
 const blankRegistration = {
   username: "",
@@ -42,41 +32,6 @@ function DiamondBadge({ text }) {
   return (
     <div className="diamond-badge">
       <span>{text}</span>
-    </div>
-  );
-}
-
-function QueryTable({ result }) {
-  if (!result) {
-    return <p className="muted-copy">Run analytics from the lounge.</p>;
-  }
-
-  return (
-    <div className="query-result">
-      <div className="query-result__meta">
-        <span>{result.title ?? "SQL Result"}</span>
-        <span>{result.row_count} rows</span>
-      </div>
-      <div className="table-shell">
-        <table>
-          <thead>
-            <tr>
-              {result.columns.map((column) => (
-                <th key={column}>{column}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {result.rows.map((row, index) => (
-              <tr key={`${index}-${JSON.stringify(row)}`}>
-                {result.columns.map((column) => (
-                  <td key={column}>{String(row[column] ?? "")}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }
@@ -140,13 +95,7 @@ function Composer({ postForm, setPostForm, onSubmit }) {
   );
 }
 
-function PostCard({
-  post,
-  active,
-  currentUserId,
-  onLike,
-  onOpen,
-}) {
+function PostCard({ post, active, currentUserId, onLike, onOpen }) {
   return (
     <article className={`app-card feed-card ${active ? "feed-card--active" : ""}`}>
       <div className="corner corner--tl" aria-hidden="true" />
@@ -190,10 +139,6 @@ export default function App() {
   const [selectedComments, setSelectedComments] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [status, setStatus] = useState("Loading HKUgram...");
-  const [querySchema, setQuerySchema] = useState(null);
-  const [queryPrompt, setQueryPrompt] = useState("most liked posts");
-  const [sqlText, setSqlText] = useState("SELECT username, display_name FROM users ORDER BY id");
-  const [queryResult, setQueryResult] = useState(null);
   const [registration, setRegistration] = useState(blankRegistration);
   const [postForm, setPostForm] = useState(blankPost);
   const [commentBody, setCommentBody] = useState("");
@@ -232,13 +177,10 @@ export default function App() {
   useEffect(() => {
     async function bootstrap() {
       try {
-        const [initialUsers, initialFeed, schema] = await Promise.all([
+        const [initialUsers, initialFeed] = await Promise.all([
           refreshUsers(),
           refreshFeed("recent"),
-          getQuerySchema(),
         ]);
-
-        setQuerySchema(schema);
 
         if (initialUsers.length) {
           setCurrentUser(initialUsers[0]);
@@ -342,28 +284,6 @@ export default function App() {
     }
   }
 
-  async function handlePromptRun(prompt) {
-    try {
-      const result = await runTextToSql(prompt);
-      setQueryPrompt(prompt);
-      setQueryResult(result);
-      setStatus(`Analytics updated: ${result.title}`);
-    } catch (error) {
-      setStatus(error.message);
-    }
-  }
-
-  async function handleSqlRun(event) {
-    event.preventDefault();
-    try {
-      const result = await runSql(sqlText);
-      setQueryResult({ ...result, title: "Custom SQL" });
-      setStatus("Read-only SQL executed.");
-    } catch (error) {
-      setStatus(error.message);
-    }
-  }
-
   return (
     <div className="social-app-shell">
       <div className="background-pattern" aria-hidden="true" />
@@ -378,7 +298,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="social-layout">
+      <main className="social-layout social-layout--two-column">
         <aside className="left-rail">
           <section className="app-card">
             <div className="card-header">
@@ -443,6 +363,40 @@ export default function App() {
           </section>
 
           <Composer postForm={postForm} setPostForm={setPostForm} onSubmit={handleCreatePost} />
+
+          <section className="app-card">
+            <div className="card-header">
+              <span className="eyebrow">IV. Profile</span>
+              <h2>User History</h2>
+            </div>
+            {selectedProfile ? (
+              <>
+                <div className="profile-head">
+                  <DiamondBadge text={selectedProfile.user.username.slice(0, 2).toUpperCase()} />
+                  <div>
+                    <h3>{selectedProfile.user.display_name}</h3>
+                    <p>@{selectedProfile.user.username}</p>
+                    <p className="muted-copy">{selectedProfile.user.bio || "No bio yet."}</p>
+                  </div>
+                </div>
+                <div className="profile-stats">
+                  <span>Posts {selectedProfile.stats.post_count}</span>
+                  <span>Likes {selectedProfile.stats.total_likes_received}</span>
+                  <span>Comments {selectedProfile.stats.total_comments_received}</span>
+                </div>
+                <div className="history-list">
+                  {selectedProfile.recent_posts.map((post) => (
+                    <button key={post.id} className="history-item" onClick={() => openPost(post)}>
+                      <strong>{formatDate(post.created_at)}</strong>
+                      <span>{post.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="muted-copy">Pick a user or post to inspect profile history.</p>
+            )}
+          </section>
         </aside>
 
         <section className="feed-column">
@@ -478,6 +432,36 @@ export default function App() {
             </p>
           </section>
 
+          {selectedPost ? (
+            <section className="app-card thread-card">
+              <div className="card-header">
+                <span className="eyebrow">III. Thread</span>
+                <h2>Post Detail</h2>
+              </div>
+              <div className="thread-meta">
+                <strong>{selectedPost.display_name}</strong>
+                <span>@{selectedPost.username}</span>
+                <time>{formatDate(selectedPost.created_at)}</time>
+              </div>
+              <p className="thread-body">{selectedPost.description}</p>
+              <form className="stack-form" onSubmit={handleComment}>
+                <label>
+                  Add Comment
+                  <textarea
+                    value={commentBody}
+                    onChange={(event) => setCommentBody(event.target.value)}
+                    placeholder="Write into the thread"
+                    required
+                  />
+                </label>
+                <button className="deco-button" type="submit">
+                  Comment
+                </button>
+              </form>
+              <CommentList comments={selectedComments} />
+            </section>
+          ) : null}
+
           <div className="feed-list">
             {feed.map((post) => (
               <PostCard
@@ -491,116 +475,6 @@ export default function App() {
             ))}
           </div>
         </section>
-
-        <aside className="right-rail">
-          <section className="app-card">
-            <div className="card-header">
-              <span className="eyebrow">III. Thread</span>
-              <h2>Post Detail</h2>
-            </div>
-            {selectedPost ? (
-              <>
-                <div className="thread-meta">
-                  <strong>{selectedPost.display_name}</strong>
-                  <span>@{selectedPost.username}</span>
-                  <time>{formatDate(selectedPost.created_at)}</time>
-                </div>
-                <p className="thread-body">{selectedPost.description}</p>
-                <form className="stack-form" onSubmit={handleComment}>
-                  <label>
-                    Add Comment
-                    <textarea
-                      value={commentBody}
-                      onChange={(event) => setCommentBody(event.target.value)}
-                      placeholder="Write into the thread"
-                      required
-                    />
-                  </label>
-                  <button className="deco-button" type="submit">
-                    Comment
-                  </button>
-                </form>
-                <CommentList comments={selectedComments} />
-              </>
-            ) : (
-              <p className="muted-copy">Select a post to view its thread.</p>
-            )}
-          </section>
-
-          <section className="app-card">
-            <div className="card-header">
-              <span className="eyebrow">IV. Profile</span>
-              <h2>User History</h2>
-            </div>
-            {selectedProfile ? (
-              <>
-                <div className="profile-head">
-                  <DiamondBadge text={selectedProfile.user.username.slice(0, 2).toUpperCase()} />
-                  <div>
-                    <h3>{selectedProfile.user.display_name}</h3>
-                    <p>@{selectedProfile.user.username}</p>
-                    <p className="muted-copy">{selectedProfile.user.bio || "No bio yet."}</p>
-                  </div>
-                </div>
-                <div className="profile-stats">
-                  <span>Posts {selectedProfile.stats.post_count}</span>
-                  <span>Likes {selectedProfile.stats.total_likes_received}</span>
-                  <span>Comments {selectedProfile.stats.total_comments_received}</span>
-                </div>
-                <div className="history-list">
-                  {selectedProfile.recent_posts.map((post) => (
-                    <button key={post.id} className="history-item" onClick={() => openPost(post)}>
-                      <strong>{formatDate(post.created_at)}</strong>
-                      <span>{post.description}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className="muted-copy">Pick a user or post to inspect profile history.</p>
-            )}
-          </section>
-
-          <section className="app-card">
-            <div className="card-header">
-              <span className="eyebrow">V. Analytics</span>
-              <h2>SQL Lounge</h2>
-            </div>
-            <div className="prompt-grid">
-              {showcasePrompts.map((prompt) => (
-                <button
-                  key={prompt}
-                  className={`prompt-chip ${queryPrompt === prompt ? "prompt-chip--active" : ""}`}
-                  onClick={() => handlePromptRun(prompt)}
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
-            <form className="stack-form" onSubmit={handleSqlRun}>
-              <label>
-                Custom SELECT
-                <textarea value={sqlText} onChange={(event) => setSqlText(event.target.value)} required />
-              </label>
-              <button className="deco-button deco-button--ghost" type="submit">
-                Execute
-              </button>
-            </form>
-            <QueryTable result={queryResult} />
-            {querySchema ? (
-              <div className="schema-block">
-                <h3>Schema</h3>
-                <div className="schema-tags">
-                  {Object.entries(querySchema.tables).map(([table, columns]) => (
-                    <span key={table} className="schema-tag">
-                      {table}: {columns.join(", ")}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </section>
-        </aside>
       </main>
     </div>
   );

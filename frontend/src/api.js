@@ -59,21 +59,3 @@ export function createComment(postId, payload) {
 export function getPostComments(postId) {
   return request(`/posts/${postId}/comments`);
 }
-
-export function runTextToSql(prompt) {
-  return request("/query/text-to-sql", {
-    method: "POST",
-    body: JSON.stringify({ prompt }),
-  });
-}
-
-export function runSql(sql) {
-  return request("/query/sql", {
-    method: "POST",
-    body: JSON.stringify({ sql }),
-  });
-}
-
-export function getQuerySchema() {
-  return request("/query/schema");
-}
