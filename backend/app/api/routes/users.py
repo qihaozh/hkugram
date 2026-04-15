@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app import crud, schemas
+from app import crud, models, schemas
 from app.database import get_db
 
 router = APIRouter(tags=["users"])
@@ -23,8 +23,12 @@ def get_users(db: Session = Depends(get_db)):
 
 
 @router.get("/users/{username}", response_model=schemas.UserProfileResponse)
-def get_user_profile(username: str, db: Session = Depends(get_db)):
-    profile = crud.get_user_profile(db, username)
+def get_user_profile(
+    username: str,
+    viewer_user_id: int | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    profile = crud.get_user_profile(db, username, viewer_user_id=viewer_user_id)
     if not profile:
         raise HTTPException(status_code=404, detail="User not found")
     return profile
@@ -50,3 +54,16 @@ def get_user_history(username: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return crud.list_user_history(db, username)
 
+
+@router.post("/users/{username}/follow", response_model=schemas.FollowToggleResponse)
+def toggle_follow(username: str, follower_user_id: int = Query(...), db: Session = Depends(get_db)):
+    follower = db.get(models.User, follower_user_id)
+    if not follower:
+        raise HTTPException(status_code=404, detail="User not found")
+    try:
+        result = crud.toggle_follow(db, follower_user_id, username)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result

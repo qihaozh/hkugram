@@ -15,6 +15,15 @@ export function getUserProfile(username) {
   return request(`/users/${username}`);
 }
 
+export function getUserProfileForViewer(username, viewerUserId) {
+  const query = new URLSearchParams();
+  if (viewerUserId) {
+    query.set("viewer_user_id", String(viewerUserId));
+  }
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return request(`/users/${username}${suffix}`);
+}
+
 export function getUserHistory(username) {
   return request(`/users/${username}/history`);
 }
@@ -26,3 +35,8 @@ export function updateUser(username, payload) {
   });
 }
 
+export function toggleFollow(username, followerUserId) {
+  return request(`/users/${username}/follow?follower_user_id=${followerUserId}`, {
+    method: "POST",
+  });
+}

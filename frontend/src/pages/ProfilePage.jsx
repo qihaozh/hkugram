@@ -1,6 +1,19 @@
 import Avatar from "../components/Avatar";
 
-export default function ProfilePage({ profile, currentUser, onPostOpen, onNavigateHome, onNavigateProfile, isOwnProfile = false, isGuestProfile = false, isUserPage = false }) {
+export default function ProfilePage({
+  profile,
+  currentUser,
+  onPostOpen,
+  onNavigateHome,
+  onNavigateProfile,
+  onToggleFollow,
+  isOwnProfile = false,
+  isGuestProfile = false,
+  isUserPage = false,
+}) {
+  const isFollowActionVisible = !!currentUser && !isOwnProfile && !isGuestProfile;
+  const followLabel = profile.is_following ? "Following" : "Follow";
+
   return (
     <section className="profile-page">
       {isUserPage ? (
@@ -24,13 +37,20 @@ export default function ProfilePage({ profile, currentUser, onPostOpen, onNaviga
             <p>@{profile.user.username}</p>
             <p className="profile-bio">{profile.user.bio || (isGuestProfile ? "Log in to turn this guest lounge into your personal salon." : "This user has not written a bio yet.")}</p>
           </div>
-          <button className="primary-pill-button" type="button">{isGuestProfile ? "Guest" : isOwnProfile ? "My Profile" : "Author Page"}</button>
+          <button
+            className="primary-pill-button"
+            type="button"
+            onClick={isFollowActionVisible ? () => onToggleFollow(profile.user.username) : undefined}
+            disabled={!isFollowActionVisible}
+          >
+            {isGuestProfile ? "Guest" : isOwnProfile ? "My Profile" : followLabel}
+          </button>
         </div>
         <div className="profile-hero__stats">
           <div><strong>{profile.stats.post_count}</strong><span>Posts</span></div>
           <div><strong>{profile.stats.total_likes_received}</strong><span>Likes</span></div>
           <div><strong>{profile.stats.total_comments_received}</strong><span>Comments</span></div>
-          <div><strong>{profile.recent_posts.length}</strong><span>Recent</span></div>
+          <div><strong>{profile.stats.followers_count}</strong><span>Followers</span></div>
         </div>
       </section>
       {profile.recent_posts.length ? (
@@ -55,4 +75,3 @@ export default function ProfilePage({ profile, currentUser, onPostOpen, onNaviga
     </section>
   );
 }
-

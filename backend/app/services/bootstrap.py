@@ -8,6 +8,7 @@ def initialize_database() -> None:
     Base.metadata.create_all(bind=engine)
     ensure_password_schema()
     ensure_post_schema()
+    ensure_follow_schema()
 
 
 def ensure_password_schema() -> None:
@@ -47,3 +48,25 @@ def ensure_post_schema() -> None:
         except Exception:
             pass
 
+
+def ensure_follow_schema() -> None:
+    inspector = inspect(engine)
+    if "follows" in inspector.get_table_names():
+        return
+
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE follows (
+                    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                    follower_id INTEGER NOT NULL,
+                    followee_id INTEGER NOT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT uq_follow_follower_followee UNIQUE (follower_id, followee_id),
+                    CONSTRAINT fk_follows_follower FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+                    CONSTRAINT fk_follows_followee FOREIGN KEY (followee_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+                """
+            )
+        )

@@ -27,6 +27,7 @@ export default function App() {
     handleNavChange,
     handleRegister,
     handleSortChange,
+    handleToggleFollow,
     handleUpdateProfile,
     isFeedLoading,
     isOwnProfileRoute,
@@ -89,6 +90,7 @@ export default function App() {
             onPostOpen={openPost}
             onNavigateHome={() => navigate({ view: "home" })}
             onNavigateProfile={goMyProfile}
+            onToggleFollow={handleToggleFollow}
             isOwnProfile={isOwnProfileRoute && !!currentUser}
             isGuestProfile={isOwnProfileRoute && !currentUser}
             isUserPage={currentView === "user"}

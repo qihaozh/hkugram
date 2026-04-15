@@ -102,12 +102,21 @@ class UserProfileStats(BaseModel):
     post_count: int
     total_likes_received: int
     total_comments_received: int
+    followers_count: int
+    following_count: int
 
 
 class UserProfileResponse(BaseModel):
     user: UserRead
     stats: UserProfileStats
     recent_posts: list[PostRead]
+    is_following: bool = False
+
+
+class FollowToggleResponse(BaseModel):
+    username: str
+    is_following: bool
+    followers_count: int
 
 
 class ViewHistoryRead(BaseModel):

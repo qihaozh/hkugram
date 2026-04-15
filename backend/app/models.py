@@ -21,6 +21,16 @@ class User(Base):
     posts: Mapped[list["Post"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     likes: Mapped[list["Like"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     comments: Mapped[list["Comment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    following: Mapped[list["Follow"]] = relationship(
+        foreign_keys="Follow.follower_id",
+        back_populates="follower",
+        cascade="all, delete-orphan",
+    )
+    followers: Mapped[list["Follow"]] = relationship(
+        foreign_keys="Follow.followee_id",
+        back_populates="followee",
+        cascade="all, delete-orphan",
+    )
 
 
 class Post(Base):
@@ -93,3 +103,20 @@ class ViewHistory(Base):
         nullable=False,
         index=True,
     )
+
+
+class Follow(Base):
+    __tablename__ = "follows"
+    __table_args__ = (UniqueConstraint("follower_id", "followee_id", name="uq_follow_follower_followee"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    follower_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    followee_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    follower: Mapped["User"] = relationship(foreign_keys=[follower_id], back_populates="following")
+    followee: Mapped["User"] = relationship(foreign_keys=[followee_id], back_populates="followers")

@@ -16,11 +16,11 @@ from app.crud.users import (
     get_user_profile as _get_user_profile,
     list_user_history,
     list_users,
+    toggle_follow,
     update_user,
 )
 
 
-def get_user_profile(db, username):
+def get_user_profile(db, username, viewer_user_id=None):
     recent_posts = list_user_posts(db, username)
-    return _get_user_profile(db, username, recent_posts)
-
+    return _get_user_profile(db, username, recent_posts, viewer_user_id)

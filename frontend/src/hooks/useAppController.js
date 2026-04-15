@@ -9,11 +9,12 @@ import {
   getPost,
   getPostComments,
   getUserHistory,
-  getUserProfile,
+  getUserProfileForViewer,
   getUsers,
   loginUser,
   logoutUser,
   recordPostView,
+  toggleFollow,
   toggleLike,
   updateUser,
 } from "../api";
@@ -91,11 +92,11 @@ export function useAppController() {
     setAnalytics(overview);
   }, []);
 
-  const loadProfile = useCallback(async (username) => {
-    const profile = await getUserProfile(username);
+  const loadProfile = useCallback(async (username, viewerUserId = currentUser?.id) => {
+    const profile = await getUserProfileForViewer(username, viewerUserId);
     setSelectedProfile(profile);
     return profile;
-  }, []);
+  }, [currentUser?.id]);
 
   const loadHistory = useCallback(async (username) => {
     const history = await getUserHistory(username);
@@ -335,6 +336,18 @@ export function useAppController() {
     refreshRecommendedCreators();
   }, [refreshRecommendedCreators]);
 
+  const handleToggleFollow = useCallback(async (username) => {
+    if (!currentUser) return setStatus("Log in to follow creators.");
+    try {
+      await toggleFollow(username, currentUser.id);
+      await loadProfile(username, currentUser.id);
+      refreshRecommendedCreators();
+      setStatus(`Updated follow status for @${username}.`);
+    } catch (error) {
+      setStatus(error.message);
+    }
+  }, [currentUser, loadProfile, refreshRecommendedCreators]);
+
   const logout = useCallback(async () => {
     try {
       await logoutUser();
@@ -366,6 +379,7 @@ export function useAppController() {
     handleNavChange,
     handleRegister,
     handleSortChange,
+    handleToggleFollow,
     handleUpdateProfile,
     isFeedLoading,
     isOwnProfileRoute,
