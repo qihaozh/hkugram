@@ -42,6 +42,7 @@ export function useAppController() {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [status, setStatus] = useState("Loading content...");
   const [isFeedLoading, setIsFeedLoading] = useState(true);
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
   const [feedError, setFeedError] = useState("");
   const [registration, setRegistration] = useState(blankRegistration);
   const [loginForm, setLoginForm] = useState(blankLogin);
@@ -89,8 +90,14 @@ export function useAppController() {
   }, [category, sortBy]);
 
   const loadAnalytics = useCallback(async () => {
-    const overview = await getAnalyticsOverview();
-    setAnalytics(overview);
+    setIsAnalyticsLoading(true);
+    try {
+      const overview = await getAnalyticsOverview();
+      setAnalytics(overview);
+      return overview;
+    } finally {
+      setIsAnalyticsLoading(false);
+    }
   }, []);
 
   const loadProfile = useCallback(async (username, viewerUserId = currentUser?.id) => {
@@ -173,12 +180,24 @@ export function useAppController() {
   useEffect(() => {
     async function bootstrap() {
       try {
-        await refreshFeed("recent", "All");
-        setStatus("Browse first, then log in when you want to interact.");
+        if (route.view === "analytics") {
+          await loadAnalytics();
+          setStatus("Analytics ready.");
+        } else {
+          await refreshFeed("recent", "All");
+          setStatus("Browse first, then log in when you want to interact.");
+        }
 
         window.setTimeout(async () => {
           try {
-            await Promise.all([refreshUsers(), loadAnalytics()]);
+            const followUpTasks = [refreshUsers()];
+            if (route.view === "analytics") {
+              followUpTasks.push(refreshFeed("recent", "All"));
+            } else {
+              followUpTasks.push(loadAnalytics());
+            }
+
+            await Promise.all(followUpTasks);
             try {
               const sessionUser = await getCurrentSession();
               await setLoggedInUser(sessionUser);
@@ -195,7 +214,7 @@ export function useAppController() {
       }
     }
     bootstrap();
-  }, [loadAnalytics, refreshFeed, refreshUsers, setLoggedInUser]);
+  }, [loadAnalytics, refreshFeed, refreshUsers, route.view, setLoggedInUser]);
 
   useEffect(() => {
     function syncRoute() {
@@ -405,6 +424,7 @@ export function useAppController() {
     handleSortChange,
     handleToggleFollow,
     handleUpdateProfile,
+    isAnalyticsLoading,
     isFeedLoading,
     isOwnProfileRoute,
     isThreadOpen,

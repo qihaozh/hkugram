@@ -1,6 +1,17 @@
 import SidebarUser from "../components/SidebarUser";
 
-export default function AnalyticsPage({ analytics, onOpenProfile }) {
+export default function AnalyticsPage({ analytics, isLoading, onOpenProfile }) {
+  if (isLoading && !analytics) {
+    return (
+      <section className="center-panel">
+        <section className="sidebar-card sidebar-card--wide" role="status" aria-live="polite">
+          <div className="card-header"><span className="eyebrow">Loading</span><h2>Preparing Analytics</h2></div>
+          <p className="muted-copy">Fetching platform metrics and creator rankings...</p>
+        </section>
+      </section>
+    );
+  }
+
   return (
     <section className="page-grid">
       <section className="page-main analytics-grid">
@@ -31,4 +42,3 @@ export default function AnalyticsPage({ analytics, onOpenProfile }) {
     </section>
   );
 }
-

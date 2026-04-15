@@ -30,6 +30,7 @@ export default function App() {
     handleSortChange,
     handleToggleFollow,
     handleUpdateProfile,
+    isAnalyticsLoading,
     isFeedLoading,
     isOwnProfileRoute,
     isThreadOpen,
@@ -102,7 +103,7 @@ export default function App() {
         ) : null}
 
         {currentView === "analytics" ? (
-          <AnalyticsPage analytics={analytics} onOpenProfile={goUserPage} />
+          <AnalyticsPage analytics={analytics} isLoading={isAnalyticsLoading} onOpenProfile={goUserPage} />
         ) : null}
 
         {currentView === "settings" ? (
