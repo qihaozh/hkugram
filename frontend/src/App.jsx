@@ -14,6 +14,7 @@ import {
   toggleLike,
   updateUser,
 } from "./api";
+import { guestProfile, parseRoute, routeToPath } from "./routes";
 
 const SESSION_KEY = "hkugram_username";
 const CATEGORIES = ["All", "Photography", "Cafe", "Inspiration", "Nightlife", "Campus", "Fashion", "Travel"];
@@ -30,11 +31,6 @@ const blankRegistration = { username: "", password: "", display_name: "", bio: "
 const blankLogin = { username: "", password: "" };
 const blankPost = { category: "Inspiration", description: "", imageFile: null };
 const blankSettings = { display_name: "", bio: "", password: "" };
-const guestProfile = {
-  user: { username: "guest", display_name: "Guest Visitor", bio: "" },
-  stats: { post_count: 0, total_likes_received: 0, total_comments_received: 0 },
-  recent_posts: [],
-};
 
 const icons = {
   home: <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="m14.8 9.2-2.4 5.6-5.6 2.4 2.4-5.6 5.6-2.4Z" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>,
@@ -57,29 +53,6 @@ function formatCompactDate(value) {
 
 function demoPassword(username) {
   return username === "sam" ? "sam123456" : `${username}123`;
-}
-
-function parseRoute(pathname) {
-  if (pathname === "/create") return { view: "create" };
-  if (pathname === "/profile") return { view: "profile" };
-  if (pathname === "/history") return { view: "history" };
-  if (pathname === "/analytics") return { view: "analytics" };
-  if (pathname === "/settings") return { view: "settings" };
-  if (pathname.startsWith("/users/")) {
-    const username = decodeURIComponent(pathname.slice("/users/".length)).trim();
-    return username ? { view: "user", username } : { view: "home" };
-  }
-  return { view: "home" };
-}
-
-function routeToPath(route) {
-  if (route.view === "create") return "/create";
-  if (route.view === "profile") return "/profile";
-  if (route.view === "history") return "/history";
-  if (route.view === "analytics") return "/analytics";
-  if (route.view === "settings") return "/settings";
-  if (route.view === "user" && route.username) return `/users/${encodeURIComponent(route.username)}`;
-  return "/";
 }
 
 function Avatar({ username, size = "md" }) {
@@ -242,9 +215,22 @@ function ThreadDrawer({ currentUser, post, comments, commentBody, setCommentBody
   );
 }
 
-function ProfilePage({ profile, currentUser, onPostOpen, isOwnProfile = false, isGuestProfile = false }) {
+function ProfilePage({ profile, currentUser, onPostOpen, onNavigateHome, onNavigateProfile, isOwnProfile = false, isGuestProfile = false, isUserPage = false }) {
   return (
     <section className="profile-page">
+      {isUserPage ? (
+        <section className="profile-route-banner">
+          <div>
+            <span className="eyebrow">Author Page</span>
+            <h2>Visiting @{profile.user.username}</h2>
+            <p className="muted-copy">This route is separate from your own profile. Use it to explore another creator's salon without replacing your account page.</p>
+          </div>
+          <div className="profile-route-banner__actions">
+            <button className="ghost-frame-button" onClick={onNavigateHome} type="button">Back to Discover</button>
+            <button className="ghost-frame-button" onClick={onNavigateProfile} type="button">{currentUser ? "Go to My Profile" : "Open Guest Profile"}</button>
+          </div>
+        </section>
+      ) : null}
       <section className="profile-hero">
         <div className="profile-hero__head">
           <Avatar username={profile.user.username} size="lg" />
@@ -659,7 +645,7 @@ export default function App() {
           </section>
         ) : null}
 
-        {(currentView === "profile" || currentView === "user") && activeProfile ? <ProfilePage profile={activeProfile} currentUser={currentUser} onPostOpen={openPost} isOwnProfile={isOwnProfileRoute && !!currentUser} isGuestProfile={isOwnProfileRoute && !currentUser} /> : null}
+        {(currentView === "profile" || currentView === "user") && activeProfile ? <ProfilePage profile={activeProfile} currentUser={currentUser} onPostOpen={openPost} onNavigateHome={() => navigate({ view: "home" })} onNavigateProfile={goMyProfile} isOwnProfile={isOwnProfileRoute && !!currentUser} isGuestProfile={isOwnProfileRoute && !currentUser} isUserPage={currentView === "user"} /> : null}
 
         {currentView === "history" ? (
           <section className="center-panel">
