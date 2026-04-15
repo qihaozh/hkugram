@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   createComment,
   createUrlPost,
@@ -61,6 +61,7 @@ export function useAppController() {
   const [browsingHistory, setBrowsingHistory] = useState([]);
   const [recommendedCreators, setRecommendedCreators] = useState([]);
   const [followingUsernames, setFollowingUsernames] = useState([]);
+  const profileRequestIdRef = useRef(0);
 
   const currentView = route.view === "user" ? "user" : route.view;
   const isOwnProfileRoute = route.view === "profile";
@@ -82,8 +83,12 @@ export function useAppController() {
   }, []);
 
   const loadProfile = useCallback(async (username, viewerUserId = currentUser?.id) => {
+    const requestId = profileRequestIdRef.current + 1;
+    profileRequestIdRef.current = requestId;
     const profile = await getUserProfileForViewer(username, viewerUserId);
-    setSelectedProfile(profile);
+    if (profileRequestIdRef.current === requestId) {
+      setSelectedProfile(profile);
+    }
     if (currentUser?.username && profile.user.username === currentUser.username) {
       setFollowingUsernames(profile.following_usernames ?? []);
     }
