@@ -4,19 +4,20 @@ import {
   createUploadedPost,
   createUser,
   getAnalyticsOverview,
+  getCurrentSession,
   getFeed,
   getPostComments,
   getUserHistory,
   getUserProfile,
   getUsers,
   loginUser,
+  logoutUser,
   recordPostView,
   toggleLike,
   updateUser,
 } from "./api";
 import { guestProfile, parseRoute, routeToPath } from "./routes";
 
-const SESSION_KEY = "hkugram_username";
 const CATEGORIES = ["All", "Photography", "Cafe", "Inspiration", "Nightlife", "Campus", "Fashion", "Travel"];
 const NAV_ITEMS = [
   { id: "home", label: "Discover" },
@@ -374,7 +375,6 @@ export default function App() {
     setCurrentUser(user);
     setLoginForm({ username: user.username, password: "" });
     setSettingsForm({ display_name: user.display_name, bio: user.bio ?? "", password: "" });
-    localStorage.setItem(SESSION_KEY, user.username);
     await loadProfile(user.username);
     await loadHistory(user.username);
   }
@@ -402,11 +402,11 @@ export default function App() {
     async function bootstrap() {
       try {
         await Promise.all([refreshUsers(), refreshFeed("recent", "All"), loadAnalytics()]);
-        const savedUsername = localStorage.getItem(SESSION_KEY);
-        if (savedUsername) {
-          setLoginForm({ username: savedUsername, password: "" });
-          setStatus("Enter your password to continue.");
-        } else {
+        try {
+          const sessionUser = await getCurrentSession();
+          await setLoggedInUser(sessionUser);
+          setStatus(`Welcome back, ${sessionUser.display_name}.`);
+        } catch {
           setStatus("Browse first, then log in when you want to interact.");
         }
       } catch (error) {
@@ -455,7 +455,7 @@ export default function App() {
     try {
       const user = await loginUser(loginForm.username, loginForm.password);
       await setLoggedInUser(user);
-      setCurrentView("home");
+      navigate({ view: "home" });
       setStatus(`Welcome back, ${user.display_name}.`);
     } catch (error) {
       setStatus(error.message);
@@ -465,11 +465,12 @@ export default function App() {
   async function handleRegister(event) {
     event.preventDefault();
     try {
-      const user = await createUser(registration);
+      await createUser(registration);
+      const user = await loginUser(registration.username, registration.password);
       await Promise.all([refreshUsers(), loadAnalytics()]);
       await setLoggedInUser(user);
       setRegistration(blankRegistration);
-      setCurrentView("home");
+      navigate({ view: "home" });
       setStatus(`Account @${user.username} created.`);
     } catch (error) {
       setStatus(error.message);
@@ -502,7 +503,7 @@ export default function App() {
       });
       setPostForm(blankPost);
       await Promise.all([refreshFeed(sortBy, category), refreshUsers(), loadAnalytics(), loadProfile(currentUser.username)]);
-      setCurrentView("home");
+      navigate({ view: "home" });
       setStatus("Post published.");
     } catch (error) {
       setStatus(error.message);
@@ -537,13 +538,18 @@ export default function App() {
     }
   }
 
-  function logout() {
-    setCurrentUser(null);
-    setSelectedProfile(null);
-    setBrowsingHistory([]);
-    localStorage.removeItem(SESSION_KEY);
-    navigate({ view: "home" });
-    setStatus("Logged out.");
+  async function logout() {
+    try {
+      await logoutUser();
+    } catch (error) {
+      setStatus(error.message);
+    } finally {
+      setCurrentUser(null);
+      setSelectedProfile(null);
+      setBrowsingHistory([]);
+      navigate({ view: "home" });
+      setStatus("Logged out.");
+    }
   }
 
   return (

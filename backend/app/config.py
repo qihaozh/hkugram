@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
     )
+    session_secret: str = "dev-hkugram-session-secret"
+    session_cookie_name: str = "hkugram_session"
+    session_max_age_seconds: int = 60 * 60 * 24 * 14
 
 
 @lru_cache

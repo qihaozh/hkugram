@@ -2,6 +2,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers ?? {}),
@@ -43,6 +44,22 @@ export function loginUser(username, password) {
   });
 }
 
+export function getCurrentSession() {
+  return request("/auth/session");
+}
+
+export async function logoutUser() {
+  const response = await fetch(`${API_BASE}/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.detail ?? "Logout failed");
+  }
+}
+
 export function getUsers() {
   return request("/users");
 }
@@ -78,6 +95,7 @@ export async function createUploadedPost({ userId, category, description, imageF
 
   const response = await fetch(`${API_BASE}/posts/upload`, {
     method: "POST",
+    credentials: "include",
     body: form,
   });
 
@@ -109,6 +127,7 @@ export function getPostComments(postId) {
 export async function recordPostView(postId, userId) {
   const response = await fetch(`${API_BASE}/posts/${postId}/views?user_id=${userId}`, {
     method: "POST",
+    credentials: "include",
   });
 
   if (!response.ok) {

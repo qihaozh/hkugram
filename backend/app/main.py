@@ -1,7 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect, text
@@ -17,7 +17,7 @@ from app.query_engine import (
     list_supported_questions,
     text_to_sql,
 )
-from app.security import hash_password
+from app.security import hash_password, sign_session_value, verify_session_value
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name)
@@ -103,12 +103,49 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Username already exists") from exc
 
 
+def set_session_cookie(response: Response, username: str) -> None:
+    response.set_cookie(
+        key=settings.session_cookie_name,
+        value=sign_session_value(username, settings.session_secret),
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        max_age=settings.session_max_age_seconds,
+    )
+
+
+def clear_session_cookie(response: Response) -> None:
+    response.delete_cookie(key=settings.session_cookie_name, httponly=True, samesite="lax")
+
+
 @app.post("/auth/login", response_model=schemas.UserRead)
-def login(payload: schemas.UserLogin, db: Session = Depends(get_db)):
+def login(payload: schemas.UserLogin, response: Response, db: Session = Depends(get_db)):
     user = crud.authenticate_user(db, payload)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")
+    set_session_cookie(response, user.username)
     return user
+
+
+@app.get("/auth/session", response_model=schemas.UserRead)
+def get_session(request: Request, db: Session = Depends(get_db)):
+    session_value = request.cookies.get(settings.session_cookie_name)
+    if not session_value:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    username = verify_session_value(session_value, settings.session_secret)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    user = crud.get_user_by_username(db, username)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    return user
+
+
+@app.post("/auth/logout", status_code=204)
+def logout(response: Response):
+    clear_session_cookie(response)
 
 
 @app.get("/users", response_model=list[schemas.UserRead])
