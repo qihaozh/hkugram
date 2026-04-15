@@ -53,6 +53,8 @@ POST_SEEDS = [
         "category": "Photography",
         "description": "Golden lights over the harbor after class.",
         "image_url": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+        "image_width": 1600,
+        "image_height": 1067,
         "offset": {"days": 3, "hours": 2},
     },
     {
@@ -60,6 +62,8 @@ POST_SEEDS = [
         "category": "Cafe",
         "description": "A quiet table, good coffee, and project planning.",
         "image_url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
+        "image_width": 1600,
+        "image_height": 1067,
         "offset": {"days": 1, "hours": 4},
     },
     {
@@ -67,6 +71,8 @@ POST_SEEDS = [
         "category": "Inspiration",
         "description": "Studio textures and geometric shadows.",
         "image_url": "https://images.unsplash.com/photo-1517048676732-d65bc937f952",
+        "image_width": 1600,
+        "image_height": 900,
         "offset": {"hours": 5},
     },
     {
@@ -74,6 +80,8 @@ POST_SEEDS = [
         "category": "Nightlife",
         "description": "Bronze reflections in the arcade right before midnight.",
         "image_url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518",
+        "image_width": 1200,
+        "image_height": 1500,
         "offset": {"minutes": 35},
     },
     {
@@ -81,6 +89,8 @@ POST_SEEDS = [
         "category": "Travel",
         "description": "A road cut straight through red stone and silence.",
         "image_url": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429",
+        "image_width": 1600,
+        "image_height": 1067,
         "offset": {"days": 4, "hours": 1},
     },
     {
@@ -88,6 +98,8 @@ POST_SEEDS = [
         "category": "Cafe",
         "description": "Late afternoon cups lined up like a brass orchestra.",
         "image_url": "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+        "image_width": 1600,
+        "image_height": 1067,
         "offset": {"days": 2, "hours": 3},
     },
     {
@@ -95,6 +107,8 @@ POST_SEEDS = [
         "category": "Campus",
         "description": "The library corridor felt like a movie set after rain.",
         "image_url": "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d",
+        "image_width": 1600,
+        "image_height": 1067,
         "offset": {"days": 2, "hours": 8},
     },
     {
@@ -102,6 +116,8 @@ POST_SEEDS = [
         "category": "Fashion",
         "description": "Sharp tailoring, polished shoes, and a deliberate pause.",
         "image_url": "https://images.unsplash.com/photo-1496747611176-843222e1e57c",
+        "image_width": 1200,
+        "image_height": 1500,
         "offset": {"days": 5, "hours": 5},
     },
     {
@@ -109,6 +125,8 @@ POST_SEEDS = [
         "category": "Inspiration",
         "description": "Symmetry, velvet shadows, and that old-theater hush.",
         "image_url": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f",
+        "image_width": 1200,
+        "image_height": 1500,
         "offset": {"days": 6, "hours": 2},
     },
     {
@@ -116,6 +134,8 @@ POST_SEEDS = [
         "category": "Nightlife",
         "description": "Neon reflections cutting across the tram window.",
         "image_url": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
+        "image_width": 1600,
+        "image_height": 900,
         "offset": {"days": 1, "hours": 1},
     },
     {
@@ -123,6 +143,8 @@ POST_SEEDS = [
         "category": "Photography",
         "description": "A portrait framed like an old poster in a dark hall.",
         "image_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+        "image_width": 1200,
+        "image_height": 1500,
         "offset": {"hours": 10},
     },
     {
@@ -130,6 +152,8 @@ POST_SEEDS = [
         "category": "Travel",
         "description": "Stone, dust, and one bright strip of road ahead.",
         "image_url": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?sig=2",
+        "image_width": 1600,
+        "image_height": 1067,
         "offset": {"days": 7, "hours": 4},
     },
 ]
@@ -197,11 +221,19 @@ def seed() -> None:
                 category=post_seed["category"],
                 description=post_seed["description"],
                 image_url=post_seed["image_url"],
+                image_width=post_seed.get("image_width"),
+                image_height=post_seed.get("image_height"),
                 created_at=now - timedelta(**post_seed["offset"]),
             )
             db.add(post)
             db.flush()
             posts_by_description[post.description] = post
+        for post_seed in POST_SEEDS:
+            post = posts_by_description[post_seed["description"]]
+            if post.image_width and post.image_height:
+                continue
+            post.image_width = post_seed.get("image_width")
+            post.image_height = post_seed.get("image_height")
 
         existing_likes = {
             (like.user_id, like.post_id)

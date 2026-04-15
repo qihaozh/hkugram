@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from sqlalchemy import inspect, text
+from PIL import Image
 
 from app.database import Base, engine
 from app.security import hash_password
@@ -9,6 +12,7 @@ def initialize_database() -> None:
     ensure_password_schema()
     ensure_post_schema()
     ensure_follow_schema()
+    backfill_local_post_dimensions()
 
 
 def ensure_password_schema() -> None:
@@ -37,16 +41,21 @@ def ensure_password_schema() -> None:
 def ensure_post_schema() -> None:
     inspector = inspect(engine)
     post_columns = {column["name"] for column in inspector.get_columns("posts")}
-    if "category" in post_columns:
-        return
 
     with engine.begin() as connection:
-        connection.execute(text("ALTER TABLE posts ADD COLUMN category VARCHAR(50) NULL"))
-        connection.execute(text("UPDATE posts SET category = 'Inspiration' WHERE category IS NULL"))
-        try:
-            connection.execute(text("ALTER TABLE posts MODIFY COLUMN category VARCHAR(50) NOT NULL"))
-        except Exception:
-            pass
+        if "category" not in post_columns:
+            connection.execute(text("ALTER TABLE posts ADD COLUMN category VARCHAR(50) NULL"))
+            connection.execute(text("UPDATE posts SET category = 'Inspiration' WHERE category IS NULL"))
+            try:
+                connection.execute(text("ALTER TABLE posts MODIFY COLUMN category VARCHAR(50) NOT NULL"))
+            except Exception:
+                pass
+
+        if "image_width" not in post_columns:
+            connection.execute(text("ALTER TABLE posts ADD COLUMN image_width INTEGER NULL"))
+
+        if "image_height" not in post_columns:
+            connection.execute(text("ALTER TABLE posts ADD COLUMN image_height INTEGER NULL"))
 
 
 def ensure_follow_schema() -> None:
@@ -70,3 +79,55 @@ def ensure_follow_schema() -> None:
                 """
             )
         )
+
+
+def backfill_local_post_dimensions() -> None:
+    uploads_dir = Path(__file__).resolve().parents[2] / "uploads"
+    if not uploads_dir.exists():
+        return
+
+    with engine.begin() as connection:
+        rows = connection.execute(
+            text(
+                """
+                SELECT id, image_url
+                FROM posts
+                WHERE (image_width IS NULL OR image_height IS NULL)
+                """
+            )
+        ).mappings().all()
+
+        for row in rows:
+            image_url = row["image_url"] or ""
+            marker = "/uploads/"
+            if marker not in image_url:
+                continue
+
+            filename = image_url.split(marker, 1)[1].split("?", 1)[0]
+            file_path = uploads_dir / filename
+            if not file_path.exists():
+                continue
+
+            try:
+                with Image.open(file_path) as uploaded:
+                    width, height = uploaded.size
+            except Exception:
+                continue
+
+            if width <= 0 or height <= 0:
+                continue
+
+            connection.execute(
+                text(
+                    """
+                    UPDATE posts
+                    SET image_width = :image_width, image_height = :image_height
+                    WHERE id = :post_id
+                    """
+                ),
+                {
+                    "image_width": width,
+                    "image_height": height,
+                    "post_id": row["id"],
+                },
+            )

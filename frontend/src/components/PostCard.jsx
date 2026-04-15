@@ -1,31 +1,30 @@
-import { memo, useState } from "react";
+import { memo } from "react";
 import Avatar from "./Avatar";
 import { formatCompactDate } from "../lib/format";
 import { icons } from "../lib/icons";
 
+function getMediaShape(post) {
+  if (!post.image_width || !post.image_height) return "square";
+  const ratio = post.image_width / post.image_height;
+  if (ratio >= 1.25) return "landscape";
+  if (ratio <= 0.82) return "portrait";
+  return "square";
+}
+
 const PostCard = memo(function PostCard({ post, currentUserId, onLike, onOpen, onProfile }) {
-  const [mediaShape, setMediaShape] = useState("square");
+  const mediaShape = getMediaShape(post);
+  const mediaStyle = post.image_width && post.image_height
+    ? { aspectRatio: `${post.image_width} / ${post.image_height}` }
+    : undefined;
 
   return (
     <article className={`post-tile post-tile--${mediaShape}`}>
-      <button className={`post-tile__media post-tile__media--${mediaShape}`} onClick={() => onOpen(post)} type="button">
+      <button className={`post-tile__media post-tile__media--${mediaShape}`} onClick={() => onOpen(post)} type="button" style={mediaStyle}>
         <img
           src={post.image_url}
           alt={post.description}
           loading="lazy"
           decoding="async"
-          onLoad={(event) => {
-            const { naturalWidth, naturalHeight } = event.currentTarget;
-            let nextShape = "square";
-            if (!naturalWidth || !naturalHeight) {
-              setMediaShape((current) => (current === "square" ? current : "square"));
-              return;
-            }
-            const ratio = naturalWidth / naturalHeight;
-            if (ratio >= 1.25) nextShape = "landscape";
-            else if (ratio <= 0.82) nextShape = "portrait";
-            setMediaShape((current) => (current === nextShape ? current : nextShape));
-          }}
         />
         <span className="post-chip post-chip--overlay">{post.category}</span>
       </button>

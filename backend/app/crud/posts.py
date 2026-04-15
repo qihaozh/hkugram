@@ -24,6 +24,8 @@ def list_feed(db: Session, sort_by: str = "recent", category: str | None = None)
             models.Post.category,
             models.Post.description,
             models.Post.image_url,
+            models.Post.image_width,
+            models.Post.image_height,
             models.Post.created_at,
             like_count,
             comment_count,
@@ -153,4 +155,3 @@ def record_post_view(db: Session, user_id: int, post_id: int) -> None:
 
     db.add(models.ViewHistory(user_id=user_id, post_id=post_id))
     db.commit()
-

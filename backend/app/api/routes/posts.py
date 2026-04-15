@@ -46,7 +46,7 @@ async def create_uploaded_post(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    filename = await save_uploaded_image(image)
+    filename, image_width, image_height = await save_uploaded_image(image)
     post = crud.create_post(
         db,
         schemas.PostCreate(
@@ -54,9 +54,16 @@ async def create_uploaded_post(
             category=category,
             description=description,
             image_url=f"http://127.0.0.1:8000/uploads/{filename}",
+            image_width=image_width,
+            image_height=image_height,
         ),
     )
-    return {"id": post.id, "image_url": post.image_url}
+    return {
+        "id": post.id,
+        "image_url": post.image_url,
+        "image_width": post.image_width,
+        "image_height": post.image_height,
+    }
 
 
 @router.post("/posts/{post_id}/like", response_model=schemas.LikeToggleResponse)
@@ -98,4 +105,3 @@ def record_post_view(post_id: int, user_id: int, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     crud.record_post_view(db, user_id=user_id, post_id=post_id)
-

@@ -41,6 +41,8 @@ class Post(Base):
     category: Mapped[str] = mapped_column(String(50), nullable=False, server_default="Inspiration")
     description: Mapped[str] = mapped_column(Text, nullable=False)
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    image_width: Mapped[int | None] = mapped_column(nullable=True)
+    image_height: Mapped[int | None] = mapped_column(nullable=True)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

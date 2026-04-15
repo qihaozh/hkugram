@@ -36,6 +36,8 @@ class PostCreate(BaseModel):
     category: str = Field(min_length=1, max_length=50)
     description: str = Field(min_length=1, max_length=2000)
     image_url: HttpUrl
+    image_width: int | None = Field(default=None, gt=0)
+    image_height: int | None = Field(default=None, gt=0)
 
 
 class PostRead(BaseModel):
@@ -43,6 +45,8 @@ class PostRead(BaseModel):
     category: str
     description: str
     image_url: str
+    image_width: int | None = None
+    image_height: int | None = None
     created_at: datetime
     like_count: int
     comment_count: int
