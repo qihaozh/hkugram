@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   createComment,
+  createUrlPost,
   createUploadedPost,
   createUser,
   getCurrentSession,
@@ -273,14 +274,24 @@ export function useAppController() {
   const handleCreatePost = useCallback(async (event) => {
     event.preventDefault();
     if (!currentUser) return setStatus("Log in before publishing.");
-    if (!postForm.imageFile) return setStatus("Choose an image first.");
     try {
-      await createUploadedPost({
-        userId: currentUser.id,
-        category: postForm.category,
-        description: postForm.description,
-        imageFile: postForm.imageFile,
-      });
+      if (postForm.imageSource === "upload") {
+        if (!postForm.imageFile) return setStatus("Choose an image first.");
+        await createUploadedPost({
+          userId: currentUser.id,
+          category: postForm.category,
+          description: postForm.description,
+          imageFile: postForm.imageFile,
+        });
+      } else {
+        if (!postForm.imageUrl.trim()) return setStatus("Paste an image URL first.");
+        await createUrlPost({
+          userId: currentUser.id,
+          category: postForm.category,
+          description: postForm.description,
+          imageUrl: postForm.imageUrl.trim(),
+        });
+      }
       setPostForm(blankPost);
       await Promise.all([
         refreshFeed({ nextSort: sortBy, nextCategory: category, limit: Math.max(feed.length, 9) }),

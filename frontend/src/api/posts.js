@@ -56,3 +56,15 @@ export async function createUploadedPost({ userId, category, description, imageF
 
   return response.json();
 }
+
+export function createUrlPost({ userId, category, description, imageUrl }) {
+  return request("/posts", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: userId,
+      category,
+      description,
+      image_url: imageUrl,
+    }),
+  });
+}

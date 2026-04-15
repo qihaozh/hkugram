@@ -19,5 +19,11 @@ export const NAV_ITEMS = [
 
 export const blankRegistration = { username: "", password: "", display_name: "", bio: "" };
 export const blankLogin = { username: "", password: "" };
-export const blankPost = { category: "Inspiration", description: "", imageFile: null };
+export const blankPost = {
+  category: "Inspiration",
+  description: "",
+  imageSource: "upload",
+  imageFile: null,
+  imageUrl: "",
+};
 export const blankSettings = { display_name: "", bio: "", password: "" };
