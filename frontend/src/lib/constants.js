@@ -14,6 +14,7 @@ export const NAV_ITEMS = [
   { id: "create", label: "Create" },
   { id: "profile", label: "Profile" },
   { id: "history", label: "History" },
+  { id: "analytics", label: "Ranking" },
   { id: "settings", label: "Settings" },
 ];
 
