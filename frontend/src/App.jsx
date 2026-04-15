@@ -17,12 +17,14 @@ const HISTORY_KEY = "hkugram_browsing_history";
 
 const blankRegistration = {
   username: "",
+  password: "",
   display_name: "",
   bio: "",
 };
 
 const blankLogin = {
   username: "",
+  password: "",
 };
 
 const blankPost = {
@@ -33,6 +35,7 @@ const blankPost = {
 const blankSettings = {
   display_name: "",
   bio: "",
+  password: "",
 };
 
 const NAV_ITEMS = [
@@ -41,6 +44,10 @@ const NAV_ITEMS = [
   { id: "history", label: "History" },
   { id: "settings", label: "Settings" },
 ];
+
+function getDemoPassword(username) {
+  return username === "sam" ? "sam123456" : `${username}123`;
+}
 
 function formatDate(value) {
   return new Intl.DateTimeFormat("en-HK", {
@@ -338,10 +345,11 @@ export default function App() {
 
   async function setLoggedInUser(user) {
     setCurrentUser(user);
-    setLoginForm({ username: user.username });
+    setLoginForm((current) => ({ ...current, username: user.username, password: "" }));
     setSettingsForm({
       display_name: user.display_name,
       bio: user.bio ?? "",
+      password: "",
     });
     localStorage.setItem(SESSION_KEY, user.username);
     await loadProfile(user.username);
@@ -391,19 +399,14 @@ export default function App() {
 
         const savedUsername = localStorage.getItem(SESSION_KEY);
         if (savedUsername) {
-          try {
-            const user = await loginUser(savedUsername);
-            await setLoggedInUser(user);
-            setStatus(`Logged in as @${user.username}`);
-          } catch {
-            localStorage.removeItem(SESSION_KEY);
-          }
+          setLoginForm({ username: savedUsername, password: "" });
+          setStatus("Enter your password to continue.");
         } else {
           setStatus("Log in or register to interact with HKUgram.");
         }
 
         if (initialUsers.length && !savedUsername) {
-          setLoginForm({ username: initialUsers[0].username });
+          setLoginForm({ username: initialUsers[0].username, password: "" });
         }
 
         if (initialFeed.length) {
@@ -420,7 +423,7 @@ export default function App() {
   async function handleLogin(event) {
     event.preventDefault();
     try {
-      const user = await loginUser(loginForm.username);
+      const user = await loginUser(loginForm.username, loginForm.password);
       await setLoggedInUser(user);
       setCurrentView("home");
       setStatus(`Logged in as @${user.username}`);
@@ -684,8 +687,22 @@ export default function App() {
                     Username
                     <input
                       value={loginForm.username}
-                      onChange={(event) => setLoginForm({ username: event.target.value })}
+                      onChange={(event) =>
+                        setLoginForm((current) => ({ ...current, username: event.target.value }))
+                      }
                       placeholder="enter your username"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Password
+                    <input
+                      type="password"
+                      value={loginForm.password}
+                      onChange={(event) =>
+                        setLoginForm((current) => ({ ...current, password: event.target.value }))
+                      }
+                      placeholder="enter your password"
                       required
                     />
                   </label>
@@ -693,6 +710,7 @@ export default function App() {
                     Log In
                   </button>
                 </form>
+                <p className="muted-copy">Demo accounts use passwords like `username123`.</p>
                 {currentUser ? (
                   <button className="deco-button deco-button--ghost" onClick={logout}>
                     Log Out
@@ -727,6 +745,18 @@ export default function App() {
                       disabled={!currentUser}
                     />
                   </label>
+                  <label>
+                    New Password
+                    <input
+                      type="password"
+                      value={settingsForm.password}
+                      onChange={(event) =>
+                        setSettingsForm((current) => ({ ...current, password: event.target.value }))
+                      }
+                      placeholder="leave blank to keep current password"
+                      disabled={!currentUser}
+                    />
+                  </label>
                   <button className="deco-button" type="submit" disabled={!currentUser}>
                     Save Profile
                   </button>
@@ -750,6 +780,18 @@ export default function App() {
                         setRegistration((current) => ({ ...current, username: event.target.value }))
                       }
                       placeholder="unique username"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Password
+                    <input
+                      type="password"
+                      value={registration.password}
+                      onChange={(event) =>
+                        setRegistration((current) => ({ ...current, password: event.target.value }))
+                      }
+                      placeholder="at least 6 characters"
                       required
                     />
                   </label>
@@ -785,7 +827,12 @@ export default function App() {
                       <button
                         key={user.id}
                         className="user-pill"
-                        onClick={() => setLoginForm({ username: user.username })}
+                        onClick={() =>
+                          setLoginForm({
+                            username: user.username,
+                            password: getDemoPassword(user.username),
+                          })
+                        }
                       >
                         @{user.username}
                       </button>

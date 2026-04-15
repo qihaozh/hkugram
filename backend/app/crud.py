@@ -3,10 +3,16 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.security import hash_password, verify_password
 
 
 def create_user(db: Session, payload: schemas.UserCreate) -> models.User:
-    user = models.User(**payload.model_dump())
+    user = models.User(
+        username=payload.username,
+        password_hash=hash_password(payload.password),
+        display_name=payload.display_name,
+        bio=payload.bio,
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -35,8 +41,19 @@ def update_user(db: Session, username: str, payload: schemas.UserUpdate) -> mode
         return None
     user.display_name = payload.display_name
     user.bio = payload.bio
+    if payload.password:
+        user.password_hash = hash_password(payload.password)
     db.commit()
     db.refresh(user)
+    return user
+
+
+def authenticate_user(db: Session, payload: schemas.UserLogin) -> models.User | None:
+    user = get_user_by_username(db, payload.username)
+    if not user:
+        return None
+    if not verify_password(payload.password, user.password_hash):
+        return None
     return user
 
 

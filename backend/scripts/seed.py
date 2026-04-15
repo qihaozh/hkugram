@@ -4,6 +4,7 @@ from sqlalchemy import select
 
 from app.database import SessionLocal
 from app.models import Comment, Like, Post, User
+from app.security import hash_password
 
 
 def seed() -> None:
@@ -14,9 +15,24 @@ def seed() -> None:
             return
 
         users = [
-            User(username="tianxing", display_name="Tianxing", bio="Night photography enthusiast"),
-            User(username="amelia", display_name="Amelia", bio="Visual storyteller"),
-            User(username="sam", display_name="Sam", bio="Capturing campus moments"),
+            User(
+                username="tianxing",
+                password_hash=hash_password("tianxing123"),
+                display_name="Tianxing",
+                bio="Night photography enthusiast",
+            ),
+            User(
+                username="amelia",
+                password_hash=hash_password("amelia123"),
+                display_name="Amelia",
+                bio="Visual storyteller",
+            ),
+            User(
+                username="sam",
+                password_hash=hash_password("sam123456"),
+                display_name="Sam",
+                bio="Capturing campus moments",
+            ),
         ]
         db.add_all(users)
         db.flush()

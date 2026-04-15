@@ -5,17 +5,20 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=50)
+    password: str = Field(min_length=6, max_length=100)
     display_name: str = Field(min_length=1, max_length=100)
     bio: str | None = Field(default=None, max_length=255)
 
 
 class UserLogin(BaseModel):
     username: str = Field(min_length=3, max_length=50)
+    password: str = Field(min_length=6, max_length=100)
 
 
 class UserUpdate(BaseModel):
     display_name: str = Field(min_length=1, max_length=100)
     bio: str | None = Field(default=None, max_length=255)
+    password: str | None = Field(default=None, min_length=6, max_length=100)
 
 
 class UserRead(BaseModel):

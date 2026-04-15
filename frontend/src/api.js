@@ -28,10 +28,10 @@ export function createUser(payload) {
   });
 }
 
-export function loginUser(username) {
+export function loginUser(username, password) {
   return request("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username }),
+    body: JSON.stringify({ username, password }),
   });
 }
 

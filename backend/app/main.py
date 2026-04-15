@@ -4,6 +4,7 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -16,6 +17,7 @@ from app.query_engine import (
     list_supported_questions,
     text_to_sql,
 )
+from app.security import hash_password
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name)
@@ -34,6 +36,30 @@ app.add_middleware(
 @app.on_event("startup")
 def startup() -> None:
     Base.metadata.create_all(bind=engine)
+    ensure_password_schema()
+
+
+def ensure_password_schema() -> None:
+    inspector = inspect(engine)
+    user_columns = {column["name"] for column in inspector.get_columns("users")}
+    if "password_hash" in user_columns:
+        return
+
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255) NULL"))
+        connection.execute(text("UPDATE users SET password_hash = :password_hash"), {"password_hash": ""})
+
+        rows = connection.execute(text("SELECT id, username FROM users")).mappings().all()
+        for row in rows:
+            connection.execute(
+                text("UPDATE users SET password_hash = :password_hash WHERE id = :user_id"),
+                {
+                    "password_hash": hash_password(row["username"] + "123"),
+                    "user_id": row["id"],
+                },
+            )
+
+        connection.execute(text("ALTER TABLE users MODIFY COLUMN password_hash VARCHAR(255) NOT NULL"))
 
 
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
@@ -63,9 +89,9 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @app.post("/auth/login", response_model=schemas.UserRead)
 def login(payload: schemas.UserLogin, db: Session = Depends(get_db)):
-    user = crud.get_user_by_username(db, payload.username)
+    user = crud.authenticate_user(db, payload)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=401, detail="Invalid username or password")
     return user
 
 
