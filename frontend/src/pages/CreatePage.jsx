@@ -8,9 +8,9 @@ export default function CreatePage({ currentUser, postForm, setPostForm, onSubmi
       <section className="sidebar-card sidebar-card--wide">
         <div className="card-header"><span className="eyebrow">Create</span><h2>Publish a New Post</h2></div>
         <form className="stack-form" onSubmit={onSubmit}>
-          <label>
-            Category
-            <div className="category-tabs">
+          <fieldset className="stack-form__fieldset">
+            <legend>Category</legend>
+            <div className="category-tabs" role="tablist" aria-label="Post categories">
               {publishCategories.map((item) => (
                 <button
                   key={item}
@@ -18,12 +18,14 @@ export default function CreatePage({ currentUser, postForm, setPostForm, onSubmi
                   onClick={() => setPostForm((current) => ({ ...current, category: item }))}
                   type="button"
                   disabled={!currentUser}
+                  role="tab"
+                  aria-selected={postForm.category === item}
                 >
                   {item}
                 </button>
               ))}
             </div>
-          </label>
+          </fieldset>
           <label>Caption
             <textarea value={postForm.description} onChange={(event) => setPostForm((current) => ({ ...current, description: event.target.value }))} placeholder="Tell the feed what this moment means..." required disabled={!currentUser} />
           </label>

@@ -573,6 +573,22 @@ button { cursor: pointer; }
   text-transform: uppercase;
   font-size: 0.72rem;
 }
+.stack-form__fieldset {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.stack-form__fieldset legend {
+  margin-bottom: 0.45rem;
+  padding: 0;
+  color: var(--gold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
 input, textarea, select {
   width: 100%;
   padding: 0.9rem 0.4rem;
@@ -585,6 +601,10 @@ input, textarea, select {
 textarea { min-height: 110px; resize: vertical; }
 .deco-select option { color: black; }
 input:focus, textarea:focus, select:focus { border-bottom-color: var(--gold-strong); }
+.category-tab:focus-visible {
+  outline: 2px solid rgba(242, 232, 196, 0.9);
+  outline-offset: 2px;
+}
 
 .comment-item, .history-record {
   display: grid;
