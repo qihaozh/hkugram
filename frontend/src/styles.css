@@ -296,6 +296,10 @@ button { cursor: pointer; }
   width: 100%;
   display: block;
   object-fit: cover;
+  transition: transform 220ms ease;
+}
+.post-tile:hover .post-tile__media img {
+  transform: scale(1.02);
 }
 .post-tile__media--landscape img {
   height: clamp(190px, 18vw, 240px);
