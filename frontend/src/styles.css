@@ -119,7 +119,11 @@ button { cursor: pointer; }
   gap: 1rem;
   align-items: start;
 }
-.page-main, .page-side, .analytics-grid, .center-panel, .profile-page { display: grid; gap: 1rem; }
+.page-main, .page-side, .analytics-grid, .center-panel, .profile-page {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
 .center-panel { max-width: 920px; margin: 0 auto; }
 
 .discovery-header, .sidebar-card, .profile-hero {
@@ -182,8 +186,11 @@ button { cursor: pointer; }
 }
 
 .feed-waterfall {
+  width: 100%;
+  max-width: 100%;
   column-count: 3;
   column-gap: 1rem;
+  overflow: hidden;
 }
 
 .feed-placeholder h3 {
@@ -250,6 +257,8 @@ button { cursor: pointer; }
 }
 .post-tile {
   break-inside: avoid;
+  display: inline-grid;
+  width: 100%;
   display: grid;
   gap: 0.8rem;
   margin-bottom: 1rem;
