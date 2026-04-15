@@ -19,7 +19,7 @@ async function request(path, options = {}) {
 
 export function getFeed(sortBy = "recent", category) {
   const query = new URLSearchParams({ sort_by: sortBy });
-  if (category && category !== "全部") {
+  if (category && category !== "All") {
     query.set("category", category);
   }
   return request(`/feed?${query.toString()}`);

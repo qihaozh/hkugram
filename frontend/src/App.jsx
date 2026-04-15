@@ -103,10 +103,26 @@ function SidebarUser({ user, onProfile, extra }) {
 }
 
 function PostCard({ post, currentUserId, onLike, onOpen, onProfile }) {
+  const [mediaShape, setMediaShape] = useState("square");
+
   return (
-    <article className="post-tile">
-      <button className="post-tile__media" onClick={() => onOpen(post)} type="button">
-        <img src={post.image_url} alt={post.description} />
+    <article className={`post-tile post-tile--${mediaShape}`}>
+      <button className={`post-tile__media post-tile__media--${mediaShape}`} onClick={() => onOpen(post)} type="button">
+        <img
+          src={post.image_url}
+          alt={post.description}
+          onLoad={(event) => {
+            const { naturalWidth, naturalHeight } = event.currentTarget;
+            if (!naturalWidth || !naturalHeight) {
+              setMediaShape("square");
+              return;
+            }
+            const ratio = naturalWidth / naturalHeight;
+            if (ratio >= 1.25) setMediaShape("landscape");
+            else if (ratio <= 0.82) setMediaShape("portrait");
+            else setMediaShape("square");
+          }}
+        />
         <span className="post-chip post-chip--overlay">{post.category}</span>
       </button>
       <div className="post-tile__body">
