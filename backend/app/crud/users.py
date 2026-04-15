@@ -74,6 +74,7 @@ def get_user_profile(
     following_count = db.scalar(
         select(func.count(models.Follow.id)).where(models.Follow.follower_id == user.id)
     ) or 0
+    following_usernames = list_following_usernames(db, user.id) if viewer_user_id == user.id else []
 
     is_following = False
     if viewer_user_id and viewer_user_id != user.id:
@@ -105,6 +106,7 @@ def get_user_profile(
         stats=stats,
         recent_posts=recent_posts[:6],
         is_following=is_following,
+        following_usernames=following_usernames,
     )
 
 
@@ -166,3 +168,13 @@ def toggle_follow(db: Session, follower_user_id: int, followee_username: str) ->
         is_following=is_following,
         followers_count=followers_count,
     )
+
+
+def list_following_usernames(db: Session, follower_user_id: int) -> list[str]:
+    rows = db.execute(
+        select(models.User.username)
+        .join(models.Follow, models.Follow.followee_id == models.User.id)
+        .where(models.Follow.follower_id == follower_user_id)
+        .order_by(models.User.username.asc())
+    ).all()
+    return [row[0] for row in rows]

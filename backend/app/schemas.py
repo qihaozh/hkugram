@@ -111,6 +111,7 @@ class UserProfileResponse(BaseModel):
     stats: UserProfileStats
     recent_posts: list[PostRead]
     is_following: bool = False
+    following_usernames: list[str] = []
 
 
 class FollowToggleResponse(BaseModel):

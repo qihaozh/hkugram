@@ -51,6 +51,7 @@ export function useAppController() {
   const [route, setRoute] = useState(() => parseRoute(window.location.pathname));
   const [browsingHistory, setBrowsingHistory] = useState([]);
   const [recommendedCreators, setRecommendedCreators] = useState([]);
+  const [followingUsernames, setFollowingUsernames] = useState([]);
 
   const currentView = route.view === "user" ? "user" : route.view;
   const isOwnProfileRoute = route.view === "profile";
@@ -95,8 +96,11 @@ export function useAppController() {
   const loadProfile = useCallback(async (username, viewerUserId = currentUser?.id) => {
     const profile = await getUserProfileForViewer(username, viewerUserId);
     setSelectedProfile(profile);
+    if (currentUser?.username && profile.user.username === currentUser.username) {
+      setFollowingUsernames(profile.following_usernames ?? []);
+    }
     return profile;
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.username]);
 
   const loadHistory = useCallback(async (username) => {
     const history = await getUserHistory(username);
@@ -318,8 +322,12 @@ export function useAppController() {
   const refreshRecommendedCreators = useCallback(() => {
     const rankedUsers = analytics?.active_users ?? [];
     const seen = new Set(rankedUsers.map((user) => user.username));
+    const excluded = new Set([currentUser?.username, ...followingUsernames].filter(Boolean));
+    const rankedCandidates = shuffleItems(
+      rankedUsers.filter((user) => !excluded.has(user.username))
+    );
     const fallbackUsers = users
-      .filter((user) => !currentUser || user.username !== currentUser.username)
+      .filter((user) => !excluded.has(user.username))
       .filter((user) => !seen.has(user.username))
       .map((user) => ({
         user_id: user.id,
@@ -328,9 +336,9 @@ export function useAppController() {
         post_count: 0,
       }));
 
-    const combined = [...shuffleItems(rankedUsers), ...shuffleItems(fallbackUsers)];
+    const combined = [...rankedCandidates, ...shuffleItems(fallbackUsers)];
     setRecommendedCreators(combined.slice(0, 4));
-  }, [analytics?.active_users, currentUser, users]);
+  }, [analytics?.active_users, currentUser?.username, followingUsernames, users]);
 
   useEffect(() => {
     refreshRecommendedCreators();
@@ -339,14 +347,19 @@ export function useAppController() {
   const handleToggleFollow = useCallback(async (username) => {
     if (!currentUser) return setStatus("Log in to follow creators.");
     try {
-      await toggleFollow(username, currentUser.id);
+      const result = await toggleFollow(username, currentUser.id);
+      setFollowingUsernames((current) => {
+        const next = new Set(current);
+        if (result.is_following) next.add(result.username);
+        else next.delete(result.username);
+        return [...next].sort();
+      });
       await loadProfile(username, currentUser.id);
-      refreshRecommendedCreators();
-      setStatus(`Updated follow status for @${username}.`);
+      setStatus(result.is_following ? `Now following @${username}.` : `Unfollowed @${username}.`);
     } catch (error) {
       setStatus(error.message);
     }
-  }, [currentUser, loadProfile, refreshRecommendedCreators]);
+  }, [currentUser, loadProfile]);
 
   const logout = useCallback(async () => {
     try {
@@ -357,6 +370,7 @@ export function useAppController() {
       setCurrentUser(null);
       setSelectedProfile(null);
       setBrowsingHistory([]);
+      setFollowingUsernames([]);
       navigate({ view: "home" });
       setStatus("Logged out.");
     }
@@ -371,6 +385,7 @@ export function useAppController() {
     currentView,
     feed,
     feedError,
+    followingUsernames,
     handleCategoryChange,
     handleComment,
     handleCreatePost,

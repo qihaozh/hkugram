@@ -13,6 +13,7 @@ export default function ProfilePage({
 }) {
   const isFollowActionVisible = !!currentUser && !isOwnProfile && !isGuestProfile;
   const followLabel = profile.is_following ? "Following" : "Follow";
+  const followButtonClassName = profile.is_following ? "ghost-frame-button" : "primary-pill-button";
 
   return (
     <section className="profile-page">
@@ -38,7 +39,7 @@ export default function ProfilePage({
             <p className="profile-bio">{profile.user.bio || (isGuestProfile ? "Log in to turn this guest lounge into your personal salon." : "This user has not written a bio yet.")}</p>
           </div>
           <button
-            className="primary-pill-button"
+            className={isFollowActionVisible ? followButtonClassName : "primary-pill-button"}
             type="button"
             onClick={isFollowActionVisible ? () => onToggleFollow(profile.user.username) : undefined}
             disabled={!isFollowActionVisible}
