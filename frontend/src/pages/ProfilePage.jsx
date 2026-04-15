@@ -12,7 +12,7 @@ export default function ProfilePage({
   isUserPage = false,
 }) {
   const isFollowActionVisible = !!currentUser && !isOwnProfile && !isGuestProfile;
-  const followLabel = profile.is_following ? "Following" : "Follow";
+  const followLabel = profile.is_following ? "Unfollow" : "Follow";
   const followButtonClassName = profile.is_following ? "ghost-frame-button" : "primary-pill-button";
 
   return (
