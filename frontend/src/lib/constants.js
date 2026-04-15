@@ -14,7 +14,6 @@ export const NAV_ITEMS = [
   { id: "create", label: "Create" },
   { id: "profile", label: "Profile" },
   { id: "history", label: "History" },
-  { id: "analytics", label: "Analytics" },
   { id: "settings", label: "Settings" },
 ];
 
@@ -22,4 +21,3 @@ export const blankRegistration = { username: "", password: "", display_name: "",
 export const blankLogin = { username: "", password: "" };
 export const blankPost = { category: "Inspiration", description: "", imageFile: null };
 export const blankSettings = { display_name: "", bio: "", password: "" };
-
