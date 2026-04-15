@@ -173,20 +173,29 @@ export function useAppController() {
   useEffect(() => {
     async function bootstrap() {
       try {
-        await Promise.all([refreshUsers(), refreshFeed("recent", "All"), loadAnalytics()]);
-        try {
-          const sessionUser = await getCurrentSession();
-          await setLoggedInUser(sessionUser);
-          setStatus(`Welcome back, ${sessionUser.display_name}.`);
-        } catch {
-          setStatus("Browse first, then log in when you want to interact.");
-        }
+        await refreshFeed("recent", "All");
+        setStatus("Browse first, then log in when you want to interact.");
+
+        window.setTimeout(async () => {
+          try {
+            await Promise.all([refreshUsers(), loadAnalytics()]);
+            try {
+              const sessionUser = await getCurrentSession();
+              await setLoggedInUser(sessionUser);
+              setStatus(`Welcome back, ${sessionUser.display_name}.`);
+            } catch {
+              // Keep guest browsing state when no session is present.
+            }
+          } catch (error) {
+            setStatus(error.message);
+          }
+        }, 0);
       } catch (error) {
         setStatus(error.message);
       }
     }
     bootstrap();
-  }, []);
+  }, [loadAnalytics, refreshFeed, refreshUsers, setLoggedInUser]);
 
   useEffect(() => {
     function syncRoute() {

@@ -1,7 +1,7 @@
 :root {
   --bg: #080808;
-  --panel: rgba(17, 17, 17, 0.96);
-  --panel-soft: rgba(20, 20, 20, 0.92);
+  --panel: #111111;
+  --panel-soft: #141414;
   --fg: #f2f0e4;
   --muted: #9f9885;
   --gold: #d4af37;
@@ -9,7 +9,7 @@
   --gold-strong: #f2e8c4;
   --border: rgba(212, 175, 55, 0.24);
   --danger: #ff3d63;
-  --shadow: 0 0 24px rgba(212, 175, 55, 0.1);
+  --shadow: none;
 }
 
 * { box-sizing: border-box; }
@@ -18,9 +18,7 @@ body {
   margin: 0;
   color: var(--fg);
   font-family: "Josefin Sans", sans-serif;
-  background:
-    radial-gradient(circle at top, rgba(212, 175, 55, 0.1), transparent 24%),
-    linear-gradient(180deg, #121212 0%, #050505 100%);
+  background: #0b0b0b;
 }
 html, body, .social-app-shell {
   scrollbar-width: none;
@@ -40,18 +38,7 @@ button { cursor: pointer; }
   position: relative;
   min-height: 100vh;
   padding: 1rem;
-  background:
-    radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 22%),
-    linear-gradient(180deg, #121212 0%, #050505 100%);
-}
-.background-pattern {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.08;
-  background-image:
-    repeating-linear-gradient(45deg, transparent 0 24px, rgba(212, 175, 55, 0.05) 24px 25px),
-    repeating-linear-gradient(-45deg, transparent 0 24px, rgba(212, 175, 55, 0.05) 24px 25px);
+  background: #0b0b0b;
 }
 .app-topbar, .page-stage {
   position: relative;
@@ -66,9 +53,8 @@ button { cursor: pointer; }
   align-items: center;
   padding: 1rem 1.2rem;
   margin-bottom: 1rem;
-  background: rgba(10, 10, 10, 0.9);
+  background: #101010;
   border: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
 .brand-block { display: grid; gap: 0.2rem; }
 .brand-block h1, .discovery-header h2, .card-header h2, .profile-hero__meta h2 {
@@ -137,9 +123,8 @@ button { cursor: pointer; }
 .center-panel { max-width: 920px; margin: 0 auto; }
 
 .discovery-header, .sidebar-card, .profile-hero {
-  background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+  background: var(--panel);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
 .sidebar-card, .post-tile, .profile-post-card, .history-record {
   content-visibility: auto;
@@ -155,7 +140,7 @@ button { cursor: pointer; }
 .sort-pill, .category-tab, .primary-pill-button {
   border: 1px solid var(--border);
   color: var(--fg);
-  transition: 220ms ease;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
 }
 .sort-pill, .category-tab {
   min-height: 40px;
@@ -165,7 +150,6 @@ button { cursor: pointer; }
 .sort-pill--active, .sort-pill:hover, .category-tab--active, .category-tab:hover {
   border-color: var(--gold);
   color: var(--gold-strong);
-  box-shadow: 0 0 16px rgba(212,175,55,0.18);
 }
 .primary-pill-button {
   min-height: 46px;
@@ -194,9 +178,8 @@ button { cursor: pointer; }
   min-height: 420px;
   padding: 1.4rem;
   align-content: start;
-  background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+  background: var(--panel);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
 
 .feed-waterfall {
@@ -222,7 +205,6 @@ button { cursor: pointer; }
 
 .feed-placeholder--error {
   border-color: rgba(255, 61, 99, 0.4);
-  box-shadow: 0 0 24px rgba(255, 61, 99, 0.12);
 }
 
 .feed-placeholder-grid {
@@ -235,16 +217,14 @@ button { cursor: pointer; }
   display: grid;
   gap: 0.8rem;
   padding: 0.85rem;
-  background: linear-gradient(180deg, rgba(17,17,17,0.98), rgba(10,10,10,0.94));
+  background: #151515;
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 24px;
 }
 
 .feed-skeleton-card__media,
 .feed-skeleton-card__line {
-  background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.12), rgba(255,255,255,0.04));
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  background: rgba(255,255,255,0.08);
 }
 
 .feed-skeleton-card__media {
@@ -265,10 +245,6 @@ button { cursor: pointer; }
   width: 72%;
 }
 
-@keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
 .post-tile {
   break-inside: avoid;
   display: inline-grid;
@@ -277,18 +253,15 @@ button { cursor: pointer; }
   gap: 0.8rem;
   margin-bottom: 1rem;
   padding: 0.85rem;
-  background: linear-gradient(180deg, rgba(17,17,17,0.98), rgba(10,10,10,0.94));
+  background: #111111;
   border: 1px solid rgba(212, 175, 55, 0.18);
   border-radius: 0;
-  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.06), 0 0 18px rgba(212, 175, 55, 0.08);
-  transition: transform 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
+  transition: border-color 140ms ease;
   position: relative;
   contain: layout paint;
 }
 .post-tile:hover {
-  transform: translateY(-4px);
   border-color: rgba(212, 175, 55, 0.42);
-  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.14), 0 0 22px rgba(212, 175, 55, 0.16);
 }
 .post-tile::before,
 .post-tile::after {
@@ -323,10 +296,6 @@ button { cursor: pointer; }
   width: 100%;
   display: block;
   object-fit: cover;
-  transition: transform 350ms ease;
-}
-.post-tile:hover .post-tile__media img {
-  transform: scale(1.03);
 }
 .post-tile__media--landscape img {
   height: clamp(190px, 18vw, 240px);
@@ -407,7 +376,7 @@ button { cursor: pointer; }
   place-items: center;
   border: 1px solid var(--gold-soft);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  background: rgba(255,255,255,0.03);
   color: var(--gold-strong);
   flex: 0 0 auto;
 }
@@ -437,9 +406,8 @@ button { cursor: pointer; }
   align-items: center;
   padding: 1rem 1.2rem;
   margin-bottom: 1rem;
-  background: linear-gradient(180deg, rgba(16, 16, 16, 0.98), rgba(11, 11, 11, 0.95));
+  background: #111111;
   border: 1px solid rgba(212, 175, 55, 0.26);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
 }
 .profile-route-banner h2 {
   margin: 0.2rem 0 0;
@@ -464,7 +432,6 @@ button { cursor: pointer; }
 }
 .ghost-frame-button:hover {
   border-color: var(--gold);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.16);
 }
 .profile-hero {
   display: grid;
@@ -531,7 +498,6 @@ button { cursor: pointer; }
   display: flex;
   justify-content: flex-end;
   background: rgba(0,0,0,0.68);
-  backdrop-filter: blur(4px);
   z-index: 20;
 }
 .thread-drawer {
@@ -539,7 +505,7 @@ button { cursor: pointer; }
   height: 100vh;
   overflow-y: auto;
   padding: 1rem;
-  background: linear-gradient(180deg, rgba(14,14,14,0.98), rgba(8,8,8,0.98));
+  background: #0e0e0e;
   border-left: 1px solid var(--border);
 }
 .thread-drawer__header {

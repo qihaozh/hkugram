@@ -11,6 +11,7 @@ import SettingsPage from "./pages/SettingsPage";
 export default function App() {
   const {
     activeProfile,
+    analytics,
     browsingHistory,
     category,
     currentUser,
@@ -56,7 +57,6 @@ export default function App() {
 
   return (
     <div className="social-app-shell">
-      <div className="background-pattern" aria-hidden="true" />
       <TopNav currentView={currentView === "user" ? "" : currentView} onChange={handleNavChange} currentUser={currentUser} onProfile={goMyProfile} onLogout={logout} />
       <main className="page-stage">
         {currentView === "home" ? (
