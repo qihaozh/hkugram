@@ -12,6 +12,7 @@ def initialize_database() -> None:
     ensure_password_schema()
     ensure_post_schema()
     ensure_follow_schema()
+    ensure_search_indexes()
     backfill_local_post_dimensions()
 
 
@@ -79,6 +80,40 @@ def ensure_follow_schema() -> None:
                 """
             )
         )
+
+
+def ensure_search_indexes() -> None:
+    if engine.dialect.name != "mysql":
+        return
+
+    index_specs = [
+        ("posts", "idx_posts_fulltext_search", "description, category"),
+        ("users", "idx_users_fulltext_search", "username, display_name, bio"),
+        ("comments", "idx_comments_fulltext_search", "body"),
+    ]
+
+    with engine.begin() as connection:
+        for table_name, index_name, columns in index_specs:
+            existing = connection.execute(
+                text(
+                    """
+                    SELECT COUNT(*) AS index_count
+                    FROM information_schema.statistics
+                    WHERE table_schema = DATABASE()
+                      AND table_name = :table_name
+                      AND index_name = :index_name
+                    """
+                ),
+                {"table_name": table_name, "index_name": index_name},
+            ).scalar()
+            if existing:
+                continue
+
+            try:
+                connection.execute(text(f"ALTER TABLE {table_name} ADD FULLTEXT INDEX {index_name} ({columns})"))
+            except Exception:
+                # Search still works through the LIKE fallback if a local DB cannot create FULLTEXT indexes.
+                continue
 
 
 def backfill_local_post_dimensions() -> None:

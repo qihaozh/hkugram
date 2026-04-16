@@ -102,6 +102,18 @@ class TextToSqlResponse(BaseModel):
     rows: list[dict]
 
 
+class SearchComparisonRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=120)
+
+
+class SearchComparisonResponse(BaseModel):
+    query: str
+    full_text_sql: str
+    full_text: SqlQueryResponse
+    text_to_sql: TextToSqlResponse
+    notes: list[str]
+
+
 class UserProfileStats(BaseModel):
     post_count: int
     total_likes_received: int

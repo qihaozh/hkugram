@@ -6,6 +6,7 @@ import CreatePage from "./pages/CreatePage";
 import HistoryPage from "./pages/HistoryPage";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
+import SearchPage from "./pages/SearchPage";
 import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
@@ -112,6 +113,10 @@ export default function App() {
 
         {currentView === "analytics" ? (
           <AnalyticsPage analytics={analytics} isLoading={isAnalyticsLoading} onOpenProfile={goUserPage} />
+        ) : null}
+
+        {currentView === "search" ? (
+          <SearchPage />
         ) : null}
 
         {currentView === "settings" ? (
