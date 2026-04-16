@@ -47,6 +47,7 @@ button { cursor: pointer; }
   margin: 0 auto;
 }
 .app-topbar {
+  z-index: 30;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 1rem;
@@ -117,8 +118,9 @@ button { cursor: pointer; }
 .user-menu {
   position: relative;
   display: inline-flex;
-  padding-bottom: 0.35rem;
-  margin-bottom: -0.35rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: -0.5rem;
+  z-index: 40;
 }
 .user-menu__trigger {
   min-height: 44px;
@@ -132,9 +134,9 @@ button { cursor: pointer; }
 }
 .user-menu__panel {
   position: absolute;
-  top: calc(100% + 0.35rem);
+  top: 100%;
   right: 0;
-  z-index: 10;
+  z-index: 999;
   display: grid;
   min-width: 180px;
   padding: 0.45rem;
@@ -145,6 +147,12 @@ button { cursor: pointer; }
   pointer-events: none;
   transform: translateY(-4px);
   transition: opacity 140ms ease, transform 140ms ease;
+}
+.user-menu__panel::before {
+  content: "";
+  position: absolute;
+  inset: -0.5rem 0 auto;
+  height: 0.5rem;
 }
 .user-menu:hover .user-menu__panel,
 .user-menu:focus-within .user-menu__panel {
