@@ -3,41 +3,64 @@ import { compareSearchMethods } from "../api";
 
 const DEFAULT_QUERY = "campus";
 
-function ResultTable({ title, eyebrow, result, sql }) {
-  const rows = result?.rows ?? [];
-  const columns = result?.columns ?? [];
-  const visibleColumns = columns.filter((column) => !["image_url"].includes(column)).slice(0, 7);
+function mergeSearchRows(comparison) {
+  const rows = [
+    ...(comparison?.full_text?.rows ?? []),
+    ...(comparison?.text_to_sql?.rows ?? []),
+  ];
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = row.id ?? `${row.username}-${row.description}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function SearchResults({ comparison }) {
+  const rows = mergeSearchRows(comparison);
+
+  if (!comparison) return null;
+
+  if (!rows.length) {
+    return (
+      <section className="sidebar-card">
+        <p className="muted-copy">No results found. Try another keyword.</p>
+      </section>
+    );
+  }
 
   return (
-    <section className="sidebar-card search-method-panel">
-      <div className="card-header">
-        <span className="eyebrow">{eyebrow}</span>
-        <h2>{title}</h2>
-      </div>
-      <div className="query-code" aria-label={`${title} generated SQL`}>{sql}</div>
-      <p className="muted-copy">{result?.row_count ?? 0} matching rows</p>
-      {rows.length ? (
-        <div className="search-result-table">
-          <div className="search-result-table__head" style={{ gridTemplateColumns: `repeat(${visibleColumns.length}, minmax(120px, 1fr))` }}>
-            {visibleColumns.map((column) => <span key={column}>{column.replaceAll("_", " ")}</span>)}
+    <section className="search-results-grid" aria-label="Search results">
+      {rows.map((row, index) => (
+        <article className="search-result-card" key={row.id ?? index}>
+          {row.image_url ? (
+            <div className="search-result-card__image">
+              <img src={row.image_url} alt="" />
+            </div>
+          ) : null}
+          <div className="search-result-card__body">
+            <div className="search-result-card__meta">
+              <span>{row.category ?? "Post"}</span>
+              <span>@{row.username}</span>
+            </div>
+            <h3>{row.display_name ?? row.username}</h3>
+            <p>{row.description}</p>
+            <div className="search-result-card__stats">
+              <span>{row.like_count ?? 0} likes</span>
+              <span>{row.comment_count ?? 0} comments</span>
+            </div>
           </div>
-          {rows.map((row, index) => (
-            <article className="search-result-table__row" key={`${title}-${row.id ?? index}`} style={{ gridTemplateColumns: `repeat(${visibleColumns.length}, minmax(120px, 1fr))` }}>
-              {visibleColumns.map((column) => <span key={column}>{String(row[column] ?? "")}</span>)}
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="muted-copy">No rows matched this search term.</p>
-      )}
+        </article>
+      ))}
     </section>
   );
 }
 
 export default function SearchPage() {
-  const [query, setQuery] = useState(DEFAULT_QUERY);
+  const [query, setQuery] = useState("");
   const [comparison, setComparison] = useState(null);
-  const [status, setStatus] = useState("Search a keyword to compare indexed full-text SQL with Text-to-SQL.");
+  const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event) {
@@ -49,11 +72,12 @@ export default function SearchPage() {
     }
 
     setIsLoading(true);
-    setStatus("Running both SQL search methods...");
+    setStatus("Searching...");
     try {
       const nextComparison = await compareSearchMethods(trimmedQuery);
       setComparison(nextComparison);
-      setStatus(`Compared search methods for "${nextComparison.query}".`);
+      const resultCount = mergeSearchRows(nextComparison).length;
+      setStatus(resultCount ? `${resultCount} results found for "${nextComparison.query}".` : `No results found for "${nextComparison.query}".`);
     } catch (error) {
       setStatus(error.message);
     } finally {
@@ -65,48 +89,21 @@ export default function SearchPage() {
     <section className="search-lab">
       <section className="discovery-header search-lab__hero">
         <div>
-          <span className="eyebrow">SQL Bonus Lab</span>
-          <h2>Search Comparison</h2>
-          <p className="muted-copy">Compare MySQL full-text search against a Text-to-SQL generated query using the same keyword.</p>
+          <span className="eyebrow">Discover</span>
+          <h2>Search</h2>
         </div>
         <form className="search-lab__form" onSubmit={handleSubmit}>
           <label>
-            Search keyword
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="campus, travel, cafe..." />
+            Search
+            <textarea value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Try "${DEFAULT_QUERY}", "travel", "cafe", or describe what you want to find...`} />
           </label>
-          <button className="ghost-frame-button" disabled={isLoading} type="submit">{isLoading ? "Comparing" : "Compare"}</button>
+          <button className="ghost-frame-button" disabled={isLoading} type="submit">{isLoading ? "Searching" : "Search"}</button>
         </form>
       </section>
 
-      <section className="sidebar-card search-lab__notes" role="status" aria-live="polite">
-        <div className="card-header">
-          <span className="eyebrow">Result</span>
-          <h2>What This Demonstrates</h2>
-        </div>
-        <p className="muted-copy">{status}</p>
-        {comparison?.notes?.length ? (
-          <ul className="search-notes">
-            {comparison.notes.map((note) => <li key={note}>{note}</li>)}
-          </ul>
-        ) : null}
-      </section>
+      {status ? <p className="search-status" role="status" aria-live="polite">{status}</p> : null}
 
-      {comparison ? (
-        <section className="search-comparison-grid">
-          <ResultTable
-            eyebrow="Full-Text SQL"
-            title="MATCH AGAINST"
-            result={comparison.full_text}
-            sql={comparison.full_text_sql}
-          />
-          <ResultTable
-            eyebrow="Text-to-SQL"
-            title={comparison.text_to_sql.title}
-            result={comparison.text_to_sql}
-            sql={comparison.text_to_sql.sql}
-          />
-        </section>
-      ) : null}
+      <SearchResults comparison={comparison} />
     </section>
   );
 }
