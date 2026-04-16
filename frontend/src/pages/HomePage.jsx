@@ -1,6 +1,7 @@
 import Avatar from "../components/Avatar";
 import { useEffect } from "react";
 import CategoryTabs from "../components/CategoryTabs";
+import DiscoveryAgent from "../components/DiscoveryAgent";
 import PostCard from "../components/PostCard";
 import SidebarUser from "../components/SidebarUser";
 import { icons } from "../lib/icons";
@@ -17,6 +18,7 @@ export default function HomePage({
   onLike,
   onLoadMoreFeed,
   onOpenPost,
+  onOpenPostById,
   onOpenProfile,
   onOpenSelfProfile,
   onRefreshCreators,
@@ -121,6 +123,7 @@ export default function HomePage({
           </div>
         </section>
       </aside>
+      <DiscoveryAgent onOpenPostById={onOpenPostById} />
     </section>
   );
 }

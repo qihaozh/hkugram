@@ -42,6 +42,7 @@ export default function App() {
     loadMoreFeed,
     navigate,
     openHistoryPost,
+    openPostById,
     openPost,
     postForm,
     recommendedCreators,
@@ -78,6 +79,7 @@ export default function App() {
             onLike={handleLike}
             onLoadMoreFeed={loadMoreFeed}
             onOpenPost={openPost}
+            onOpenPostById={openPostById}
             onOpenProfile={goUserPage}
             onOpenSelfProfile={goMyProfile}
             onRefreshCreators={refreshRecommendedCreators}

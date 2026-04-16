@@ -163,6 +163,16 @@ export function useAppController() {
     }
   }, [openPost]);
 
+  const openPostById = useCallback(async (postId) => {
+    try {
+      const post = await getPost(postId);
+      await openPost(post);
+      setStatus("Opened post.");
+    } catch (error) {
+      setStatus(error.message);
+    }
+  }, [openPost]);
+
   useEffect(() => {
     async function bootstrap() {
       try {
@@ -440,6 +450,7 @@ export function useAppController() {
     loginForm,
     navigate,
     openHistoryPost,
+    openPostById,
     openPost,
     logout,
     loadMoreFeed,

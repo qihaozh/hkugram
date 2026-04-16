@@ -297,6 +297,90 @@ button { cursor: pointer; }
   padding: 0.5rem 0 0;
 }
 
+.discovery-agent {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 25;
+}
+.discovery-agent__bubble {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--gold);
+  background: #101010;
+  color: var(--gold-strong);
+  font-family: "Marcellus", serif;
+  letter-spacing: 0.14em;
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.24);
+}
+.discovery-agent__panel {
+  display: grid;
+  gap: 0.9rem;
+  width: min(calc(100vw - 2rem), 430px);
+  max-height: min(76vh, 720px);
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  background: #101010;
+  box-shadow: 0 0 28px rgba(212, 175, 55, 0.16);
+}
+.discovery-agent__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+.discovery-agent__header h2 {
+  margin: 0;
+  font-family: "Marcellus", serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.discovery-agent__form,
+.discovery-agent__approval,
+.discovery-agent__result {
+  display: grid;
+  gap: 0.75rem;
+}
+.discovery-agent__form label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--gold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+.discovery-agent__form textarea {
+  min-height: 92px;
+}
+.discovery-agent__status,
+.discovery-agent__approval p,
+.discovery-agent__result p,
+.discovery-agent__result span {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.discovery-agent__approval pre {
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  background: rgba(255,255,255,0.025);
+  color: var(--gold-strong);
+  white-space: pre-wrap;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.discovery-agent__links {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
 .feed-placeholder h3 {
   margin: 0;
   font-family: "Marcellus", serif;

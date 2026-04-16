@@ -14,9 +14,23 @@ This service provides the first core function for the COMP3278 project: a MySQL-
 
 The backend container runs `python scripts/bootstrap.py` before starting Uvicorn. That bootstrap step waits for MySQL, creates tables, and seeds demo data once.
 
+## AI agent configuration
+
+The Discover page AI agent is configured for a Llama 3.1 chat-completions-compatible API.
+Do not commit API keys into the repository. For Docker Compose, export the key and API base URL in your shell before starting the app:
+
+```bash
+export AI_API_KEY="your-key-here"
+export AI_BASE_URL="https://gudufree.yeelam.site/v1"
+export AI_MODEL="Qwen3.5-397B-A17B-T"
+docker compose up --build
+```
+
 ## Endpoints
 
 - `GET /health`
+- `POST /agent/draft`
+- `POST /agent/execute`
 - `GET /query/schema`
 - `POST /query/sql`
 - `POST /query/text-to-sql`

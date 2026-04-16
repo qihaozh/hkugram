@@ -11,9 +11,10 @@ from sqlalchemy.orm import Session
 
 READ_ONLY_SQL_PATTERN = re.compile(r"^\s*select\b", re.IGNORECASE | re.DOTALL)
 BLOCKED_SQL_PATTERN = re.compile(
-    r"\b(insert|update|delete|drop|alter|truncate|create|replace|grant|revoke)\b|;",
+    r"\b(insert|update|delete|drop|alter|truncate|create|replace|grant|revoke|merge|call|execute|sleep|benchmark|information_schema|performance_schema|mysql|sys|into\s+outfile|load_file)\b|;",
     re.IGNORECASE,
 )
+SQL_COMMENT_PATTERN = re.compile(r"(--|/\*|\*/|#)")
 
 
 SCHEMA_CONTEXT = {
@@ -303,10 +304,7 @@ def build_search_prompt(search_text: str) -> str:
 
 
 def execute_read_only_sql(db: Session, sql: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-    normalized_sql = sql.strip()
-    if not READ_ONLY_SQL_PATTERN.match(normalized_sql) or BLOCKED_SQL_PATTERN.search(normalized_sql):
-        raise ValueError("Only single-statement read-only SELECT queries are allowed.")
-
+    normalized_sql = validate_read_only_sql(sql)
     result = db.execute(text(normalized_sql), params or {})
     rows = [dict(row._mapping) for row in result]
     return {
@@ -314,6 +312,17 @@ def execute_read_only_sql(db: Session, sql: str, params: dict[str, Any] | None =
         "row_count": len(rows),
         "rows": rows,
     }
+
+
+def validate_read_only_sql(sql: str) -> str:
+    normalized_sql = sql.strip()
+    if (
+        not READ_ONLY_SQL_PATTERN.match(normalized_sql)
+        or BLOCKED_SQL_PATTERN.search(normalized_sql)
+        or SQL_COMMENT_PATTERN.search(normalized_sql)
+    ):
+        raise ValueError("Only single-statement read-only SELECT queries are allowed.")
+    return normalized_sql
 
 
 def execute_full_text_search(db: Session, search_text: str) -> tuple[str, dict[str, Any], bool]:
