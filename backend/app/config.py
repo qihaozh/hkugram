@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     session_secret: str = "dev-hkugram-session-secret"
     session_cookie_name: str = "hkugram_session"
     session_max_age_seconds: int = 60 * 60 * 24 * 14
+    ai_api_key: str | None = None
+    ai_base_url: str = "https://gudufree.yeelam.site/v1"
+    ai_model: str = "Qwen3.5-397B-A17B-T"
+    ai_timeout_seconds: float = 90
 
 
 @lru_cache

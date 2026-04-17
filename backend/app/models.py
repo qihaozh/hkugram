@@ -31,6 +31,11 @@ class User(Base):
         back_populates="followee",
         cascade="all, delete-orphan",
     )
+    notifications: Mapped[list["Notification"]] = relationship(
+        foreign_keys="Notification.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class Post(Base):
@@ -122,3 +127,25 @@ class Follow(Base):
 
     follower: Mapped["User"] = relationship(foreign_keys=[follower_id], back_populates="following")
     followee: Mapped["User"] = relationship(foreign_keys=[followee_id], back_populates="followers")
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    actor_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    type: Mapped[str] = mapped_column(String(50), nullable=False)
+    post_id: Mapped[int | None] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"), nullable=True)
+    is_read: Mapped[bool] = mapped_column(default=False, server_default="0", nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True
+    )
+
+    user: Mapped["User"] = relationship(foreign_keys=[user_id], back_populates="notifications")
+    actor: Mapped["User"] = relationship(foreign_keys=[actor_id])
+    post: Mapped["Post"] = relationship()
+

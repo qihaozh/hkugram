@@ -163,6 +163,16 @@ export function useAppController() {
     }
   }, [openPost]);
 
+  const openPostById = useCallback(async (postId) => {
+    try {
+      const post = await getPost(postId);
+      await openPost(post);
+      setStatus("Opened post.");
+    } catch (error) {
+      setStatus(error.message);
+    }
+  }, [openPost]);
+
   useEffect(() => {
     async function bootstrap() {
       try {
@@ -187,7 +197,12 @@ export function useAppController() {
             try {
               const sessionUser = await getCurrentSession();
               await setLoggedInUser(sessionUser);
-              setStatus(`Welcome back, ${sessionUser.display_name}.`);
+              if (route.view === "user" && route.username) {
+                await loadProfile(route.username, sessionUser.id);
+                setStatus(`Viewing @${route.username}'s salon`);
+              } else {
+                setStatus(`Welcome back, ${sessionUser.display_name}.`);
+              }
             } catch {
               // Keep guest browsing state when no session is present.
             }
@@ -200,7 +215,7 @@ export function useAppController() {
       }
     }
     bootstrap();
-  }, [loadAnalytics, refreshFeed, refreshUsers, resetFeed, route.view, setLoggedInUser]);
+  }, [loadAnalytics, loadProfile, refreshFeed, refreshUsers, resetFeed, route.username, route.view, setLoggedInUser]);
 
   useEffect(() => {
     function syncRoute() {
@@ -435,6 +450,7 @@ export function useAppController() {
     loginForm,
     navigate,
     openHistoryPost,
+    openPostById,
     openPost,
     logout,
     loadMoreFeed,

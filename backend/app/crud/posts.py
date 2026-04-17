@@ -106,6 +106,16 @@ def set_like(db: Session, post_id: int, user_id: int, liked: bool) -> schemas.Li
         if not current_liked:
             db.add(models.Like(post_id=post_id, user_id=user_id))
             try:
+                db.flush()
+                # Create notification
+                post = db.scalar(select(models.Post).where(models.Post.id == post_id))
+                if post and post.user_id != user_id:
+                    db.add(models.Notification(
+                        user_id=post.user_id,
+                        actor_id=user_id,
+                        type="like",
+                        post_id=post_id
+                    ))
                 db.commit()
             except IntegrityError:
                 db.rollback()
@@ -123,6 +133,18 @@ def set_like(db: Session, post_id: int, user_id: int, liked: bool) -> schemas.Li
 def create_comment(db: Session, post_id: int, payload: schemas.CommentCreate) -> models.Comment:
     comment = models.Comment(post_id=post_id, **payload.model_dump())
     db.add(comment)
+    db.flush()
+
+    # Create notification
+    post = db.scalar(select(models.Post).where(models.Post.id == post_id))
+    if post and post.user_id != payload.user_id:
+        db.add(models.Notification(
+            user_id=post.user_id,
+            actor_id=payload.user_id,
+            type="comment",
+            post_id=post_id
+        ))
+
     db.commit()
     db.refresh(comment)
     return comment
