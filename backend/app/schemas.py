@@ -102,6 +102,52 @@ class TextToSqlResponse(BaseModel):
     rows: list[dict]
 
 
+class SearchComparisonRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=120)
+
+
+class SearchComparisonResponse(BaseModel):
+    query: str
+    full_text_sql: str
+    full_text: SqlQueryResponse
+    text_to_sql: TextToSqlResponse
+    notes: list[str]
+
+
+class PopularKeyword(BaseModel):
+    keyword: str
+    result_count: int
+
+
+class AgentPromptRequest(BaseModel):
+    prompt: str = Field(min_length=1, max_length=500)
+
+
+class AgentDraftResponse(BaseModel):
+    prompt: str
+    sql: str
+    explanation: str
+    requires_approval: bool = True
+
+
+class AgentExecuteRequest(BaseModel):
+    sql: str = Field(min_length=1, max_length=5000)
+
+
+class AgentPostLink(BaseModel):
+    post_id: int
+    label: str
+
+
+class AgentExecuteResponse(BaseModel):
+    sql: str
+    columns: list[str]
+    row_count: int
+    rows: list[dict]
+    answer: str
+    post_links: list[AgentPostLink]
+
+
 class UserProfileStats(BaseModel):
     post_count: int
     total_likes_received: int

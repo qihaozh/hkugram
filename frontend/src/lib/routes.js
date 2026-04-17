@@ -9,6 +9,7 @@ export function parseRoute(pathname) {
   if (pathname === "/profile") return { view: "profile" };
   if (pathname === "/history") return { view: "history" };
   if (pathname === "/analytics") return { view: "analytics" };
+  if (pathname === "/search") return { view: "search" };
   if (pathname === "/settings") return { view: "settings" };
   if (pathname.startsWith("/users/")) {
     const username = decodeURIComponent(pathname.slice("/users/".length)).trim();
@@ -22,6 +23,7 @@ export function routeToPath(route) {
   if (route.view === "profile") return "/profile";
   if (route.view === "history") return "/history";
   if (route.view === "analytics") return "/analytics";
+  if (route.view === "search") return "/search";
   if (route.view === "settings") return "/settings";
   if (route.view === "user" && route.username) return `/users/${encodeURIComponent(route.username)}`;
   return "/";

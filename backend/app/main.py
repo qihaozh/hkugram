@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import (
+    agent_router,
     analytics_router,
     auth_router,
     posts_router,
@@ -45,3 +46,4 @@ app.include_router(posts_router)
 app.include_router(analytics_router)
 app.include_router(query_router)
 app.include_router(notifications_router)
+app.include_router(agent_router)

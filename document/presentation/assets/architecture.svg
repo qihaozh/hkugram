@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430">
+  <rect x="0" y="0" width="1200" height="430" fill="#0A0A0A"/>
+  <rect x="48" y="135" width="180" height="120" fill="#141414" stroke="#D4AF37" stroke-width="4"/>
+  <text x="138" y="182" fill="#F2F0E4" font-size="24" text-anchor="middle" font-family="Georgia">Browser</text>
+  <text x="138" y="214" fill="#D4AF37" font-size="18" text-anchor="middle" font-family="Arial">users</text>
+
+  <rect x="326" y="108" width="220" height="174" fill="#141414" stroke="#D4AF37" stroke-width="4"/>
+  <text x="436" y="155" fill="#F2F0E4" font-size="26" text-anchor="middle" font-family="Georgia">React + Vite</text>
+  <text x="436" y="190" fill="#D4AF37" font-size="18" text-anchor="middle" font-family="Arial">Feed / Profile / History</text>
+  <text x="436" y="220" fill="#D4AF37" font-size="18" text-anchor="middle" font-family="Arial">Create / Analytics / Settings</text>
+
+  <rect x="642" y="84" width="240" height="222" fill="#141414" stroke="#D4AF37" stroke-width="4"/>
+  <text x="762" y="130" fill="#F2F0E4" font-size="26" text-anchor="middle" font-family="Georgia">FastAPI</text>
+  <text x="762" y="164" fill="#D4AF37" font-size="18" text-anchor="middle" font-family="Arial">/auth /users /posts</text>
+  <text x="762" y="194" fill="#D4AF37" font-size="18" text-anchor="middle" font-family="Arial">/analytics /query</text>
+  <text x="762" y="234" fill="#F2F0E4" font-size="18" text-anchor="middle" font-family="Arial">SQLAlchemy + service layer</text>
+  <text x="762" y="264" fill="#F2F0E4" font-size="18" text-anchor="middle" font-family="Arial">read-only SQL guard</text>
+
+  <rect x="976" y="132" width="172" height="126" rx="18" ry="18" fill="#1E3D59" stroke="#D4AF37" stroke-width="4"/>
+  <text x="1062" y="182" fill="#F2F0E4" font-size="24" text-anchor="middle" font-family="Georgia">MySQL 8.4</text>
+  <text x="1062" y="214" fill="#D4AF37" font-size="18" text-anchor="middle" font-family="Arial">relational store</text>
+
+  <line x1="228" y1="195" x2="326" y2="195" stroke="#D4AF37" stroke-width="4"/>
+  <polygon points="326,195 312,188 312,202" fill="#D4AF37"/>
+  <line x1="546" y1="195" x2="642" y2="195" stroke="#D4AF37" stroke-width="4"/>
+  <polygon points="642,195 628,188 628,202" fill="#D4AF37"/>
+  <line x1="882" y1="195" x2="976" y2="195" stroke="#D4AF37" stroke-width="4"/>
+  <polygon points="976,195 962,188 962,202" fill="#D4AF37"/>
+
+  <text x="586" y="176" fill="#A7A094" font-size="15" text-anchor="middle" font-family="Arial">REST JSON</text>
+  <text x="931" y="176" fill="#A7A094" font-size="15" text-anchor="middle" font-family="Arial">ORM</text>
+</svg>

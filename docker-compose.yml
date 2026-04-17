@@ -26,6 +26,10 @@ services:
     environment:
       APP_NAME: HKUgram API
       DATABASE_URL: mysql+pymysql://hkugram:hkugram@db:3306/hkugram
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_BASE_URL: ${AI_BASE_URL:-https://gudufree.yeelam.site/v1}
+      AI_MODEL: ${AI_MODEL:-Qwen3.5-397B-A17B-T}
+      AI_TIMEOUT_SECONDS: ${AI_TIMEOUT_SECONDS:-90}
     ports:
       - "8000:8000"
     depends_on:

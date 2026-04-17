@@ -14,3 +14,4 @@ backend/uploads/
 tmp/
 .claude/
 document/*.pdf
+~$*.pptx

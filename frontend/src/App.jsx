@@ -6,6 +6,7 @@ import CreatePage from "./pages/CreatePage";
 import HistoryPage from "./pages/HistoryPage";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
+import SearchPage from "./pages/SearchPage";
 import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
     loadMoreFeed,
     navigate,
     openHistoryPost,
+    openPostById,
     openPost,
     postForm,
     recommendedCreators,
@@ -77,6 +79,7 @@ export default function App() {
             onLike={handleLike}
             onLoadMoreFeed={loadMoreFeed}
             onOpenPost={openPost}
+            onOpenPostById={openPostById}
             onOpenProfile={goUserPage}
             onOpenSelfProfile={goMyProfile}
             onRefreshCreators={refreshRecommendedCreators}
@@ -112,6 +115,10 @@ export default function App() {
 
         {currentView === "analytics" ? (
           <AnalyticsPage analytics={analytics} isLoading={isAnalyticsLoading} onOpenProfile={goUserPage} />
+        ) : null}
+
+        {currentView === "search" ? (
+          <SearchPage currentUser={currentUser} onLike={handleLike} onOpenPost={openPost} onOpenProfile={goUserPage} />
         ) : null}
 
         {currentView === "settings" ? (
