@@ -176,6 +176,14 @@ def set_follow(
         if not existing:
             db.add(models.Follow(follower_id=follower_user_id, followee_id=followee.id))
             try:
+                db.flush()
+                # Create notification
+                db.add(models.Notification(
+                    user_id=followee.id,
+                    actor_id=follower_user_id,
+                    type="follow",
+                    post_id=None
+                ))
                 db.commit()
             except IntegrityError:
                 db.rollback()

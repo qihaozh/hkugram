@@ -206,3 +206,15 @@ class AnalyticsOverview(BaseModel):
     total_likes: int
     top_posts: list[TopPostStat]
     active_users: list[ActiveUserStat]
+
+
+class NotificationRead(BaseModel):
+    id: int
+    actor_id: int
+    actor_username: str
+    actor_display_name: str
+    type: str
+    post_id: int | None = None
+    is_read: bool
+    created_at: datetime
+

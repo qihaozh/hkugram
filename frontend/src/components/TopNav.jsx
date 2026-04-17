@@ -1,6 +1,7 @@
 import Avatar from "./Avatar";
 import { NAV_ITEMS } from "../lib/constants";
 import { icons } from "../lib/icons";
+import NotificationButton from "./NotificationButton";
 
 export default function TopNav({ currentView, onChange, currentUser, onProfile, onLogout }) {
   const navItems = currentUser
@@ -24,6 +25,7 @@ export default function TopNav({ currentView, onChange, currentUser, onProfile, 
       <div className="topbar-user">
         {currentUser ? (
           <div className="user-menu">
+            <NotificationButton currentUser={currentUser} onProfile={onProfile} />
             <button className="user-chip user-menu__trigger" onClick={() => onProfile(currentUser.username)} type="button" aria-haspopup="menu">
               <Avatar username={currentUser.username} size="xs" />
               <span>{currentUser.display_name}</span>
