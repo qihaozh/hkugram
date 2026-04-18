@@ -36,7 +36,7 @@ export default function TopNav({ currentView, onChange, currentUser, onProfile, 
       </nav>
       <div className="topbar-user">
         <button
-          className="ghost-text-button theme-toggle-button"
+          className="theme-toggle-button"
           onClick={onToggleTheme}
           type="button"
           title={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
