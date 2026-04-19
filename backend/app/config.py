@@ -1,8 +1,8 @@
 from functools import lru_cache
+from typing import Annotated
 
-from pydantic import Field
-from pydantic.field_validator import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     database_url: str = Field(
         default="mysql+pymysql://hkugram:hkugram@127.0.0.1:3306/hkugram"
     )
-    cors_origins: list[str] = Field(
+    cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
     )
     session_secret: str = "dev-hkugram-session-secret"

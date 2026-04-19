@@ -8,8 +8,6 @@ services:
       MYSQL_USER: hkugram
       MYSQL_PASSWORD: hkugram
       MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -23,14 +21,13 @@ services:
     container_name: hkugram-adminer
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8070:8080"
     depends_on:
       db:
         condition: service_healthy
 
   backend:
-    build:
-      context: ./backend
+    image: ghcr.xiaoji.de/bylinmou/hkugram-backend:latest
     container_name: hkugram-backend
     restart: unless-stopped
     environment:
@@ -40,7 +37,7 @@ services:
       AI_BASE_URL: ${AI_BASE_URL:-https://gudufree.yeelam.site/v1}
       AI_MODEL: ${AI_MODEL:-llama3.1-8b}
       AI_TIMEOUT_SECONDS: ${AI_TIMEOUT_SECONDS:-90}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://127.0.0.1}
     ports:
       - "8000:8000"
     depends_on:
@@ -53,14 +50,11 @@ services:
       retries: 10
 
   frontend:
-    image: node:22.12-alpine
+    image: ghcr.xiaoji.de/bylinmou/hkugram-frontend:latest
     container_name: hkugram-frontend
-    working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
-    volumes:
-      - ./frontend:/app
+    restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "80:80"
     depends_on:
       backend:
         condition: service_healthy

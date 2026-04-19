@@ -2,13 +2,54 @@ name: Deploy To Server
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows:
+      - Release
+    types:
+      - completed
 
 jobs:
+  check-release:
+    name: Check Release Eligibility
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Checkout release commit
+        if: github.event_name == 'workflow_run'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Fetch tags
+        if: github.event_name == 'workflow_run'
+        shell: bash
+        run: git fetch --force --tags origin
+
+      - name: Decide whether to deploy
+        id: check
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          VERSION="$(tr -d '\r\n' < VERSION)"
+          TAG_SHA="$(git rev-list -n 1 "v${VERSION}" 2>/dev/null || true)"
+
+          if [ -n "$TAG_SHA" ] && [ "$TAG_SHA" = "${{ github.event.workflow_run.head_sha }}" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy:
+    needs: check-release
     name: Remote Docker Compose Deploy
+    if: needs.check-release.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -27,8 +68,8 @@ jobs:
             set -e
             cd "${{ secrets.DEPLOY_PROJECT_PATH }}"
             git fetch origin
+            git checkout main
             git reset --hard origin/main
-            docker compose down
-            docker compose build --no-cache
-            docker compose up -d
-            docker compose ps
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml ps
