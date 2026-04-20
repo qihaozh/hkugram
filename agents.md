@@ -1,12 +1,8 @@
-Read requirements for project details "requirements\Group Project(1).pdf", reference to "requirements\Good examples of course project-20260412" for what your project should be look like.
-
 Commit after each core function done. Update the VERSION file as well for version control (jump number only when one core function done, or else change the alpha number, e.g. 0.0.0-alpha.1, 0.0.0-alpha.2)
 
 tech stack: no specific tech stack but user more familiar with python as backend and html as front end. The course required mysql. you may use docker if you find some specific env not installed locally.
 
 Track the .gitignore file and add all tmp files into it.
-
-You should implement the code and function first, before move on to powerpoint and diagrams(you r allowed to present it in a .md with mermaid, or if u hv ability u can use memaid to draw graphs). no video needed at this point.
 
 ---
 
@@ -113,13 +109,6 @@ The goal is instant recognition: when someone sees this design, they should imme
 *   **Border**: `#D4AF37` (Gold) - Borders are celebrated, not hidden.
 *   **Muted**: `#888888` (Pewter) - For secondary text.
 
-### Typography
-*   **Headings**: **"Marcellus"** (Google Font) or "Italiana". These have the classic Roman structures with Art Deco flair.
-*   **Body**: **"Josefin Sans"** (Google Font). Geometric, vintage feel, but readable.
-*   **Scaling**: High contrast. Headings should be imposing.
-    *   H1: `text-6xl` or `text-7xl`, uppercase, generous letter-spacing (`tracking-widest`).
-    *   Body: `text-lg`, comfortable `leading-relaxed`.
-
 ### Radius & Border
 *   **Radius**: **Strictly `0px`** or very specific `2px` for softness. Art Deco is about sharp lines.
 *   **Border Width**: Thin, precise lines (`1px`) or double lines (`3px` double style) are common.
@@ -199,7 +188,7 @@ Inputs embrace **minimalism within maximalism**—no background boxes, just refi
 - No ring, only the enhanced underline
 
 **Label Pattern:**
-- Uppercase, small font size (xs or sm)
+- Uppercase
 - Gold color for active state
 - Positioned above input or floating label pattern
 

@@ -12,7 +12,7 @@ export default function NotificationButton({ currentUser, onProfile }) {
 
   useEffect(() => {
     if (!currentUser) return;
-    
+
     // Fetch notifications
     const fetchNotifs = async () => {
       try {
@@ -23,7 +23,7 @@ export default function NotificationButton({ currentUser, onProfile }) {
         console.error("Failed to fetch notifications", err);
       }
     };
-    
+
     fetchNotifs();
     const interval = setInterval(fetchNotifs, 30000); // 30s polling
     return () => clearInterval(interval);
@@ -46,7 +46,7 @@ export default function NotificationButton({ currentUser, onProfile }) {
       try {
         await markNotificationsRead();
         setUnreadCount(0);
-        setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+        setNotifications(notifications.map((n) => ({ ...n, is_read: true })));
       } catch (err) {
         console.error("Failed to mark notifications read", err);
       }
@@ -68,14 +68,14 @@ export default function NotificationButton({ currentUser, onProfile }) {
 
   return (
     <div ref={dropdownRef} className="notification-menu">
-      <button 
-        type="button" 
+      <button
+        type="button"
         className={`nav-icon-button ${isOpen ? "nav-icon-button--active" : ""}`}
         onClick={handleToggle}
         title="Notifications"
       >
         <span className="notification-menu__icon">
-          🔔
+          {icons.notification}
           {unreadCount > 0 && (
             <span className="notification-menu__badge">
               {unreadCount}

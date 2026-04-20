@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import ThreadDrawer from "./components/ThreadDrawer";
 import TopNav from "./components/TopNav";
 import { useAppController } from "./hooks/useAppController";
@@ -10,14 +10,27 @@ import ProfilePage from "./pages/ProfilePage";
 import SearchPage from "./pages/SearchPage";
 import SettingsPage from "./pages/SettingsPage";
 
+const THEME_STORAGE_KEY = "theme";
+
+function getInitialTheme() {
+  if (typeof window === "undefined") return "dark";
+
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (storedTheme === "dark" || storedTheme === "light") return storedTheme;
+
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+}
+
 export default function App() {
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "dark"
-  );
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.style.colorScheme = theme;
+  }, [theme]);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
   const toggleTheme = () => {
