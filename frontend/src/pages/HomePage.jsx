@@ -1,4 +1,3 @@
-import Avatar from "../components/Avatar";
 import { useEffect } from "react";
 import CategoryTabs from "../components/CategoryTabs";
 import DiscoveryAgent from "../components/DiscoveryAgent";
@@ -98,6 +97,7 @@ export default function HomePage({
         )}
       </section>
       <aside className="page-side">
+        {/*
         <section className="sidebar-card">
           <div className="card-header"><span className="eyebrow">Session</span><h2>{currentUser ? "Signed In" : "Guest"}</h2></div>
           {currentUser ? (
@@ -107,6 +107,7 @@ export default function HomePage({
             </button>
           ) : <p className="muted-copy">Log in to like, comment, publish, and keep a browsing history.</p>}
         </section>
+        */}
         <section className="sidebar-card">
           <div className="card-header card-header--with-action">
             <div>
