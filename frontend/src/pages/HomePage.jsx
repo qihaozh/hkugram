@@ -2,7 +2,7 @@ import Avatar from "../components/Avatar";
 import { useEffect } from "react";
 import CategoryTabs from "../components/CategoryTabs";
 import DiscoveryAgent from "../components/DiscoveryAgent";
-import PostCard from "../components/PostCard";
+import MasonryFeed from "../components/MasonryFeed";
 import SidebarUser from "../components/SidebarUser";
 import { icons } from "../lib/icons";
 
@@ -73,9 +73,14 @@ export default function HomePage({
           </section>
         ) : feed.length ? (
           <>
-          <div className="feed-waterfall">
-            {feed.map((post) => <PostCard key={post.id} post={post} currentUserId={currentUser?.id} onLike={onLike} onOpen={onOpenPost} onProfile={onOpenProfile} />)}
-          </div>
+          <MasonryFeed
+            ariaLabel="Discover feed"
+            currentUserId={currentUser?.id}
+            onLike={onLike}
+            onOpen={onOpenPost}
+            onProfile={onOpenProfile}
+            posts={feed}
+          />
           {hasMoreFeed ? (
             <div className="feed-load-more">
               <button className="ghost-frame-button" onClick={onLoadMoreFeed} type="button" disabled={isFeedLoadingMore}>

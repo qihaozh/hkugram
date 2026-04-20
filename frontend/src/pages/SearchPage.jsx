@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { compareSearchMethods, getPopularKeywords } from "../api";
-import PostCard from "../components/PostCard";
+import MasonryFeed from "../components/MasonryFeed";
 
 const DEFAULT_QUERY = "campus";
 
@@ -32,18 +32,14 @@ function SearchResults({ comparison }) {
   }
 
   return (
-    <section className="feed-waterfall" aria-label="Search results">
-      {rows.map((row, index) => (
-        <PostCard
-          currentUserId={comparison.currentUserId}
-          key={row.id ?? index}
-          onLike={comparison.onLike}
-          onOpen={comparison.onOpenPost}
-          onProfile={comparison.onOpenProfile}
-          post={{ ...row, recent_comments: row.recent_comments ?? [] }}
-        />
-      ))}
-    </section>
+    <MasonryFeed
+      ariaLabel="Search results"
+      currentUserId={comparison.currentUserId}
+      onLike={comparison.onLike}
+      onOpen={comparison.onOpenPost}
+      onProfile={comparison.onOpenProfile}
+      posts={rows.map((row) => ({ ...row, recent_comments: row.recent_comments ?? [] }))}
+    />
   );
 }
 
