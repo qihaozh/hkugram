@@ -31,6 +31,38 @@ function shuffleItems(items) {
   return next;
 }
 
+function applyLikeState(post, liked, likeCount) {
+  return {
+    ...post,
+    like_count: likeCount,
+    liked_by_viewer: liked,
+  };
+}
+
+function patchProfilePosts(posts, postId, liked, likeCount) {
+  let matched = false;
+  let previousLikeCount = null;
+
+  const nextPosts = posts.map((post) => {
+    if (post.id !== postId) return post;
+    matched = true;
+    previousLikeCount = post.like_count ?? 0;
+    return applyLikeState(post, liked, likeCount);
+  });
+
+  return { matched, nextPosts, previousLikeCount };
+}
+
+function getOptimisticLikeCount(currentLikeCount, currentLiked, intent) {
+  if (intent === "like") {
+    return currentLiked ? currentLikeCount : currentLikeCount + 1;
+  }
+  if (intent === "unlike") {
+    return currentLiked ? Math.max(0, currentLikeCount - 1) : currentLikeCount;
+  }
+  return currentLikeCount;
+}
+
 export function useAppController() {
   const [currentUser, setCurrentUser] = useState(null);
   const {
@@ -41,6 +73,7 @@ export function useAppController() {
     isFeedLoading,
     isFeedLoadingMore,
     loadMoreFeed,
+    patchFeedPost,
     refreshFeed,
     resetFeed,
     sortBy,
@@ -62,6 +95,7 @@ export function useAppController() {
   const [recommendedCreators, setRecommendedCreators] = useState([]);
   const [followingUsernames, setFollowingUsernames] = useState([]);
   const profileRequestIdRef = useRef(0);
+  const likeRequestIdsRef = useRef(new Set());
 
   const currentView = route.view === "user" ? "user" : route.view;
   const isOwnProfileRoute = route.view === "profile";
@@ -325,29 +359,95 @@ export function useAppController() {
     }
   }, [category, currentUser, feed.length, loadAnalytics, loadProfile, navigate, postForm, refreshFeed, refreshUsers, sortBy]);
 
-  const handleLike = useCallback(async (postId, userId) => {
+  const syncLikedPost = useCallback((postId, liked, likeCount, options = {}) => {
+    const { postOwnerUsername = null, previousLikeCount = likeCount } = options;
+
+    patchFeedPost(postId, (post) => applyLikeState(post, liked, likeCount));
+
+    setSelectedPost((currentPost) => {
+      if (!currentPost || currentPost.id !== postId) return currentPost;
+      return applyLikeState(currentPost, liked, likeCount);
+    });
+
+    setSelectedProfile((currentProfile) => {
+      if (!currentProfile) return currentProfile;
+
+      const { matched, nextPosts, previousLikeCount: profilePreviousLikeCount } = patchProfilePosts(
+        currentProfile.recent_posts,
+        postId,
+        liked,
+        likeCount
+      );
+
+      const isProfileOwner = currentProfile.user.username === postOwnerUsername || matched;
+      const baseLikeCount = matched
+        ? (profilePreviousLikeCount ?? previousLikeCount)
+        : previousLikeCount;
+      const likeDelta = isProfileOwner ? likeCount - baseLikeCount : 0;
+
+      if (!matched && !likeDelta) return currentProfile;
+
+      return {
+        ...currentProfile,
+        recent_posts: matched ? nextPosts : currentProfile.recent_posts,
+        stats: likeDelta ? {
+          ...currentProfile.stats,
+          total_likes_received: Math.max(0, currentProfile.stats.total_likes_received + likeDelta),
+        } : currentProfile.stats,
+      };
+    });
+  }, [patchFeedPost]);
+
+  const handleLike = useCallback(async (postId, userId, options = {}) => {
     if (!userId) return setStatus("Log in to like posts.");
-    try {
-      const likeResult = await toggleLike(postId, userId);
-      const [items] = await Promise.all([
-        refreshFeed({ nextSort: sortBy, nextCategory: category, limit: Math.max(feed.length, 9) }),
-        loadAnalytics(),
-      ]);
-      setSelectedPost((currentPost) => {
-        if (!currentPost || currentPost.id !== postId) return currentPost;
-        const refreshed = items.find((item) => item.id === postId);
-        return refreshed ?? {
-          ...currentPost,
-          like_count: likeResult.like_count,
-          liked_by_viewer: likeResult.liked,
-        };
-      });
-      if (route.view === "profile" && currentUser?.username) await loadProfile(currentUser.username);
-      if (route.view === "user" && route.username) await loadProfile(route.username);
-    } catch (error) {
-      setStatus(error.message);
+
+    const knownPost = selectedPost?.id === postId
+      ? selectedPost
+      : feed.find((post) => post.id === postId)
+        ?? selectedProfile?.recent_posts.find((post) => post.id === postId)
+        ?? null;
+    const currentLiked = options.currentLiked ?? Boolean(knownPost?.liked_by_viewer);
+    const currentLikeCount = options.currentLikeCount ?? (knownPost?.like_count ?? 0);
+    const requestedIntent = options.intent ?? "toggle";
+    const nextIntent = requestedIntent === "toggle"
+      ? (currentLiked ? "unlike" : "like")
+      : requestedIntent;
+    const postOwnerUsername = options.postOwnerUsername
+      ?? knownPost?.username
+      ?? (selectedProfile?.recent_posts.find((post) => post.id === postId)?.username ?? null);
+
+    if ((nextIntent === "like" && currentLiked) || (nextIntent === "unlike" && !currentLiked)) {
+      return { post_id: postId, liked: currentLiked, like_count: currentLikeCount };
     }
-  }, [category, currentUser, feed.length, loadAnalytics, loadProfile, refreshFeed, route.username, route.view, sortBy]);
+
+    if (likeRequestIdsRef.current.has(postId)) return null;
+
+    const optimisticLikeCount = getOptimisticLikeCount(currentLikeCount, currentLiked, nextIntent);
+    likeRequestIdsRef.current.add(postId);
+    syncLikedPost(postId, nextIntent === "like", optimisticLikeCount, {
+      postOwnerUsername,
+      previousLikeCount: currentLikeCount,
+    });
+
+    try {
+      const likeResult = await toggleLike(postId, userId, nextIntent);
+      syncLikedPost(postId, likeResult.liked, likeResult.like_count, {
+        postOwnerUsername,
+        previousLikeCount: currentLikeCount,
+      });
+      loadAnalytics().catch(() => {});
+      return likeResult;
+    } catch (error) {
+      syncLikedPost(postId, currentLiked, currentLikeCount, {
+        postOwnerUsername,
+        previousLikeCount: optimisticLikeCount,
+      });
+      setStatus(error.message);
+      return null;
+    } finally {
+      likeRequestIdsRef.current.delete(postId);
+    }
+  }, [feed, loadAnalytics, selectedPost, selectedProfile, syncLikedPost]);
 
   const handleComment = useCallback(async (body, resetDraft) => {
     if (!currentUser || !selectedPost) return setStatus("Log in and open a post first.");

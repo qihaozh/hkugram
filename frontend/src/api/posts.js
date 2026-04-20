@@ -27,8 +27,12 @@ export function getPostComments(postId) {
   return request(`/posts/${postId}/comments`);
 }
 
-export function toggleLike(postId, userId) {
-  return request(`/posts/${postId}/like?user_id=${userId}`, {
+export function toggleLike(postId, userId, intent = "toggle") {
+  const query = new URLSearchParams({ user_id: String(userId) });
+  if (intent !== "toggle") {
+    query.set("intent", intent);
+  }
+  return request(`/posts/${postId}/like?${query.toString()}`, {
     method: "POST",
   });
 }

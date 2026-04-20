@@ -18,6 +18,28 @@ function mergeSearchRows(comparison) {
   });
 }
 
+function patchComparisonLikeState(comparison, postId, liked, likeCount) {
+  if (!comparison) return comparison;
+
+  const patchRows = (rows = []) => rows.map((row) => (
+    row.id === postId
+      ? { ...row, like_count: likeCount, liked_by_viewer: liked }
+      : row
+  ));
+
+  return {
+    ...comparison,
+    full_text: {
+      ...comparison.full_text,
+      rows: patchRows(comparison.full_text?.rows),
+    },
+    text_to_sql: {
+      ...comparison.text_to_sql,
+      rows: patchRows(comparison.text_to_sql?.rows),
+    },
+  };
+}
+
 function SearchResults({ comparison }) {
   const rows = mergeSearchRows(comparison);
 
@@ -101,9 +123,16 @@ export default function SearchPage({ currentUser, onLike, onOpenPost, onOpenProf
     }
   }
 
-  async function handleSearchLike(postId, userId) {
-    await onLike(postId, userId);
-    if (lastSearchQuery) await runSearch(lastSearchQuery);
+  async function handleSearchLike(postId, userId, options = {}) {
+    const likeResult = await onLike(postId, userId, options);
+    if (!likeResult) return;
+
+    setComparison((current) => patchComparisonLikeState(
+      current,
+      postId,
+      likeResult.liked,
+      likeResult.like_count
+    ));
   }
 
   return (

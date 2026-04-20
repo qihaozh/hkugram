@@ -106,6 +106,21 @@ export function useFeedController(initialSort = "recent", initialCategory = "All
     visibleFeedCountRef.current = Math.max(DEFAULT_FEED_PAGE_SIZE, nextCount);
   }, []);
 
+  const patchFeedPost = useCallback((postId, updater) => {
+    setFeed((current) => {
+      let hasChanges = false;
+      const next = current.map((post) => {
+        if (post.id !== postId) return post;
+        hasChanges = true;
+        return updater(post);
+      });
+      if (hasChanges) {
+        feedRef.current = next;
+      }
+      return hasChanges ? next : current;
+    });
+  }, []);
+
   useEffect(() => {
     const previousViewerUserId = previousViewerUserIdRef.current ?? null;
     const nextViewerUserId = viewerUserId ?? null;
@@ -130,6 +145,7 @@ export function useFeedController(initialSort = "recent", initialCategory = "All
     isFeedLoading,
     isFeedLoadingMore,
     loadMoreFeed,
+    patchFeedPost,
     refreshFeed,
     resetFeed,
     sortBy,

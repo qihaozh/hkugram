@@ -51,7 +51,11 @@ const PostCard = memo(function PostCard({ post, currentUserId, onLike, onOpen, o
             aria-label={isLiked ? "Unlike post" : "Like post"}
             aria-pressed={isLiked}
             className={`icon-action ${isLiked ? "icon-action--active" : ""}`}
-            onClick={() => onLike(post.id, currentUserId)}
+            onClick={() => onLike(post.id, currentUserId, {
+              currentLiked: isLiked,
+              currentLikeCount: post.like_count,
+              postOwnerUsername: post.username,
+            })}
             disabled={!currentUserId}
             type="button"
           >

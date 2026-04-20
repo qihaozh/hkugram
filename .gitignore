@@ -13,6 +13,7 @@ node_modules/
 *.log
 backend/uploads/
 *.db
+backend/tmp_*.db
 tmp/
 .claude/
 document/*.pdf

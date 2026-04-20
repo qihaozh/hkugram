@@ -44,7 +44,11 @@ const ThreadDrawer = memo(function ThreadDrawer({ currentUser, post, comments, o
             aria-pressed={isLiked}
             className={`icon-action thread-like-button ${isLiked ? "icon-action--active" : ""}`}
             disabled={!currentUser}
-            onClick={() => onLike(post.id, currentUser?.id)}
+            onClick={() => onLike(post.id, currentUser?.id, {
+              currentLiked: isLiked,
+              currentLikeCount: post.like_count,
+              postOwnerUsername: post.username,
+            })}
             type="button"
           >
             {isLiked ? icons.heartFilled : icons.heart}
