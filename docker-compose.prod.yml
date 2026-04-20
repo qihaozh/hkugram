@@ -17,7 +17,7 @@ services:
       retries: 10
 
   adminer:
-    image: adminer:4.8.1
+    image: adminer:latest
     container_name: hkugram-adminer
     restart: unless-stopped
     ports:

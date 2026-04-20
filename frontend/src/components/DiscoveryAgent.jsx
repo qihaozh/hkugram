@@ -3,6 +3,22 @@ import { draftAgentQuery, executeAgentQuery } from "../api";
 
 const EXAMPLE_PROMPT = "Show the most popular campus posts";
 
+function RecommendationCard({ item, onOpenPostById }) {
+  return (
+    <article className="discovery-agent__recommendation">
+      <div className="discovery-agent__recommendation-copy">
+        <span className="eyebrow">Curated Pick</span>
+        <h3>{item.headline}</h3>
+        <p>{item.summary}</p>
+        <p className="discovery-agent__recommendation-reason">{item.reason}</p>
+      </div>
+      <button className="ghost-frame-button" onClick={() => onOpenPostById(item.post_id)} type="button">
+        {item.label || `Open post ${item.post_id}`}
+      </button>
+    </article>
+  );
+}
+
 export default function DiscoveryAgent({ onOpenPostById }) {
   const [isOpen, setIsOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -37,11 +53,11 @@ export default function DiscoveryAgent({ onOpenPostById }) {
   async function handleExecute() {
     if (!draft?.sql) return;
     setIsLoading(true);
-    setStatus("Running approved query...");
+    setStatus("Running approved query and reviewing the matches...");
     try {
-      const nextResult = await executeAgentQuery(draft.sql);
+      const nextResult = await executeAgentQuery({ sql: draft.sql, prompt: draft.prompt || prompt.trim() });
       setResult(nextResult);
-      setStatus("Query complete.");
+      setStatus("Query complete. The agent highlighted the strongest matches.");
     } catch (error) {
       setStatus(error.message);
     } finally {
@@ -90,7 +106,14 @@ export default function DiscoveryAgent({ onOpenPostById }) {
           {result ? (
             <section className="discovery-agent__result">
               <p>{result.answer}</p>
-              {result.post_links.length ? (
+              {result.recommendations?.length ? (
+                <div className="discovery-agent__recommendations">
+                  {result.recommendations.map((item) => (
+                    <RecommendationCard item={item} key={item.post_id} onOpenPostById={onOpenPostById} />
+                  ))}
+                </div>
+              ) : null}
+              {!result.recommendations?.length && result.post_links.length ? (
                 <div className="discovery-agent__links">
                   {result.post_links.map((link) => (
                     <button className="ghost-frame-button" key={link.post_id} onClick={() => onOpenPostById(link.post_id)} type="button">
@@ -99,7 +122,10 @@ export default function DiscoveryAgent({ onOpenPostById }) {
                   ))}
                 </div>
               ) : null}
-              <span>{result.row_count} rows returned</span>
+              <span>
+                {result.row_count} rows returned
+                {result.analysis_source === "ai" ? " · AI curated" : " · fallback ranking"}
+              </span>
             </section>
           ) : null}
         </section>

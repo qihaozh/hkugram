@@ -3,7 +3,7 @@ from httpx import HTTPError, HTTPStatusError, TimeoutException
 from sqlalchemy.orm import Session
 
 from app import schemas
-from app.agent_engine import build_post_links, draft_agent_sql, summarize_agent_rows
+from app.agent_engine import build_post_links, curate_agent_results, draft_agent_sql, summarize_agent_rows
 from app.database import get_db
 from app.query_engine import execute_read_only_sql, validate_read_only_sql
 
@@ -37,18 +37,21 @@ async def draft_query(payload: schemas.AgentPromptRequest):
 
 
 @router.post("/execute", response_model=schemas.AgentExecuteResponse)
-def execute_approved_query(payload: schemas.AgentExecuteRequest, db: Session = Depends(get_db)):
+async def execute_approved_query(payload: schemas.AgentExecuteRequest, db: Session = Depends(get_db)):
     try:
         sql = validate_read_only_sql(payload.sql)
         result = execute_read_only_sql(db, sql)
         rows = result["rows"]
+        curated = await curate_agent_results(payload.prompt, rows)
         return schemas.AgentExecuteResponse(
             sql=sql,
             columns=result["columns"],
             row_count=result["row_count"],
             rows=rows,
-            answer=summarize_agent_rows(rows),
+            answer=curated.get("summary") or summarize_agent_rows(rows),
             post_links=build_post_links(rows),
+            recommendations=curated.get("recommendations") or [],
+            analysis_source=str(curated.get("source") or "fallback"),
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

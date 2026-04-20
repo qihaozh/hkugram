@@ -7,9 +7,9 @@ export function draftAgentQuery(prompt) {
   });
 }
 
-export function executeAgentQuery(sql) {
+export function executeAgentQuery({ sql, prompt }) {
   return request("/agent/execute", {
     method: "POST",
-    body: JSON.stringify({ sql }),
+    body: JSON.stringify({ sql, prompt }),
   });
 }

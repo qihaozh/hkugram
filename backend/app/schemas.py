@@ -131,11 +131,20 @@ class AgentDraftResponse(BaseModel):
 
 
 class AgentExecuteRequest(BaseModel):
+    prompt: str | None = Field(default=None, min_length=1, max_length=500)
     sql: str = Field(min_length=1, max_length=5000)
 
 
 class AgentPostLink(BaseModel):
     post_id: int
+    label: str
+
+
+class AgentPostRecommendation(BaseModel):
+    post_id: int
+    headline: str
+    summary: str
+    reason: str
     label: str
 
 
@@ -146,6 +155,8 @@ class AgentExecuteResponse(BaseModel):
     rows: list[dict]
     answer: str
     post_links: list[AgentPostLink]
+    recommendations: list[AgentPostRecommendation] = []
+    analysis_source: str = "fallback"
 
 
 class UserProfileStats(BaseModel):
