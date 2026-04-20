@@ -111,13 +111,6 @@ The goal is instant recognition: when someone sees this design, they should imme
 *   **Border**: `#D4AF37` (Gold) - Borders are celebrated, not hidden.
 *   **Muted**: `#888888` (Pewter) - For secondary text.
 
-### Typography
-*   **Headings**: **"Marcellus"** (Google Font) or "Italiana". These have the classic Roman structures with Art Deco flair.
-*   **Body**: **"Josefin Sans"** (Google Font). Geometric, vintage feel, but readable.
-*   **Scaling**: High contrast. Headings should be imposing.
-    *   H1: `text-6xl` or `text-7xl`, uppercase, generous letter-spacing (`tracking-widest`).
-    *   Body: `text-lg`, comfortable `leading-relaxed`.
-
 ### Radius & Border
 *   **Radius**: **Strictly `0px`** or very specific `2px` for softness. Art Deco is about sharp lines.
 *   **Border Width**: Thin, precise lines (`1px`) or double lines (`3px` double style) are common.
@@ -197,7 +190,7 @@ Inputs embrace **minimalism within maximalism**—no background boxes, just refi
 - No ring, only the enhanced underline
 
 **Label Pattern:**
-- Uppercase, small font size (xs or sm)
+- Uppercase
 - Gold color for active state
 - Positioned above input or floating label pattern
 

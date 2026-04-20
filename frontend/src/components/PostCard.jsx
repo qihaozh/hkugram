@@ -13,13 +13,10 @@ function getMediaShape(post) {
 
 const PostCard = memo(function PostCard({ post, currentUserId, onLike, onOpen, onProfile }) {
   const mediaShape = getMediaShape(post);
-  const mediaStyle = post.image_width && post.image_height
-    ? { aspectRatio: `${post.image_width} / ${post.image_height}` }
-    : undefined;
 
   return (
     <article className={`post-tile post-tile--${mediaShape}`}>
-      <button className={`post-tile__media post-tile__media--${mediaShape}`} onClick={() => onOpen(post)} type="button" style={mediaStyle}>
+      <button className={`post-tile__media post-tile__media--${mediaShape}`} onClick={() => onOpen(post)} type="button">
         <img
           src={post.image_url}
           alt={post.description}
