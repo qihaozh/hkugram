@@ -19,7 +19,8 @@ function updateItemSpan(node) {
   if (!rowHeight) return;
 
   const height = card.getBoundingClientRect().height;
-  const span = Math.max(1, Math.ceil((height + rowGap) / (rowHeight + rowGap)));
+  const buffer = rowHeight;
+  const span = Math.max(1, Math.ceil((height + rowGap + buffer) / (rowHeight + rowGap)));
   node.style.gridRowEnd = `span ${span}`;
 }
 
@@ -31,6 +32,7 @@ export default function MasonryFeed({
   onProfile,
   posts,
 }) {
+  const containerRef = useRef(null);
   const itemRefs = useRef(new Map());
   const frameRef = useRef(0);
   const keys = useMemo(() => posts.map(getPostKey), [posts]);
@@ -63,6 +65,7 @@ export default function MasonryFeed({
         .map((node) => node.firstElementChild)
         .filter((node) => node instanceof HTMLElement)
         .forEach((node) => resizeObserver.observe(node));
+      if (containerRef.current) resizeObserver.observe(containerRef.current);
     }
 
     const cleanupImageListeners = nodes.flatMap((node) => {
@@ -84,7 +87,7 @@ export default function MasonryFeed({
   }, [keys]);
 
   return (
-    <section className="feed-waterfall" aria-label={ariaLabel}>
+    <section className="feed-waterfall" aria-label={ariaLabel} ref={containerRef}>
       {posts.map((post, index) => {
         const key = keys[index];
         return (

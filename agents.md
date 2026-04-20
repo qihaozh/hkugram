@@ -1,5 +1,3 @@
-Read requirements for project details "requirements\Group Project(1).pdf", reference to "requirements\Good examples of course project-20260412" for what your project should be look like.
-
 Commit after each core function done. Update the VERSION file as well for version control (jump number only when one core function done, or else change the alpha number, e.g. 0.0.0-alpha.1, 0.0.0-alpha.2)
 
 tech stack: no specific tech stack but user more familiar with python as backend and html as front end. The course required mysql. you may use docker if you find some specific env not installed locally.
