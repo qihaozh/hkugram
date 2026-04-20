@@ -6,25 +6,11 @@ from app import models, schemas
 from app.crud.users import get_user_by_username
 
 
-def create_post(db: Session, payload: schemas.PostCreate) -> models.Post:
-    post = models.Post(**payload.model_dump(mode="json"))
-    db.add(post)
-    db.commit()
-    db.refresh(post)
-    return post
-
-
-def list_feed(
-    db: Session,
-    sort_by: str = "recent",
-    category: str | None = None,
-    limit: int = 9,
-    offset: int = 0,
-) -> list[schemas.PostRead]:
+def _post_summary_query() -> Select:
     like_count = func.count(func.distinct(models.Like.id)).label("like_count")
     comment_count = func.count(func.distinct(models.Comment.id)).label("comment_count")
 
-    query: Select = (
+    return (
         select(
             models.Post.id,
             models.Post.category,
@@ -44,21 +30,33 @@ def list_feed(
         .group_by(models.Post.id, models.User.id)
     )
 
-    if category:
-        query = query.where(models.Post.category == category)
 
-    if sort_by == "popular":
-        query = query.order_by(desc(like_count), desc(models.Post.created_at))
-    else:
-        query = query.order_by(desc(models.Post.created_at))
+def _attach_viewer_like_state(
+    db: Session,
+    posts: list[schemas.PostRead],
+    viewer_user_id: int | None,
+) -> None:
+    if not posts or not viewer_user_id:
+        return
 
-    query = query.limit(limit).offset(offset)
+    post_ids = [post.id for post in posts]
+    liked_post_ids = {
+        post_id
+        for post_id in db.scalars(
+            select(models.Like.post_id).where(
+                models.Like.user_id == viewer_user_id,
+                models.Like.post_id.in_(post_ids),
+            )
+        ).all()
+    }
 
-    rows = db.execute(query).all()
-    posts = [schemas.PostRead.model_validate({**row._mapping, "recent_comments": []}) for row in rows]
+    for post in posts:
+        post.liked_by_viewer = post.id in liked_post_ids
 
+
+def _attach_recent_comments(db: Session, posts: list[schemas.PostRead]) -> None:
     if not posts:
-        return posts
+        return
 
     post_ids = [post.id for post in posts]
     comment_rows = db.execute(
@@ -86,6 +84,40 @@ def list_feed(
     for post in posts:
         post.recent_comments = list(reversed(grouped.get(post.id, [])))
 
+
+def create_post(db: Session, payload: schemas.PostCreate) -> models.Post:
+    post = models.Post(**payload.model_dump(mode="json"))
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+def list_feed(
+    db: Session,
+    sort_by: str = "recent",
+    category: str | None = None,
+    limit: int = 9,
+    offset: int = 0,
+    viewer_user_id: int | None = None,
+) -> list[schemas.PostRead]:
+    like_count = func.count(func.distinct(models.Like.id)).label("like_count")
+    query = _post_summary_query()
+
+    if category:
+        query = query.where(models.Post.category == category)
+
+    if sort_by == "popular":
+        query = query.order_by(desc(like_count), desc(models.Post.created_at))
+    else:
+        query = query.order_by(desc(models.Post.created_at))
+
+    query = query.limit(limit).offset(offset)
+
+    rows = db.execute(query).all()
+    posts = [schemas.PostRead.model_validate({**row._mapping, "recent_comments": []}) for row in rows]
+    _attach_viewer_like_state(db, posts, viewer_user_id)
+    _attach_recent_comments(db, posts)
     return posts
 
 
@@ -169,18 +201,22 @@ def list_post_comments(db: Session, post_id: int) -> list[schemas.CommentRead]:
     return [schemas.CommentRead.model_validate(row._mapping) for row in rows]
 
 
-def list_user_posts(db: Session, username: str) -> list[schemas.PostRead]:
+def list_user_posts(db: Session, username: str, viewer_user_id: int | None = None) -> list[schemas.PostRead]:
     user = get_user_by_username(db, username)
     if not user:
         return []
-    return [post for post in list_feed(db, sort_by="recent") if post.username == username]
+    return [post for post in list_feed(db, sort_by="recent", viewer_user_id=viewer_user_id) if post.username == username]
 
 
-def get_post_detail(db: Session, post_id: int) -> schemas.PostRead | None:
-    for post in list_feed(db, sort_by="recent"):
-        if post.id == post_id:
-            return post
-    return None
+def get_post_detail(db: Session, post_id: int, viewer_user_id: int | None = None) -> schemas.PostRead | None:
+    row = db.execute(_post_summary_query().where(models.Post.id == post_id)).one_or_none()
+    if not row:
+        return None
+
+    post = schemas.PostRead.model_validate({**row._mapping, "recent_comments": []})
+    _attach_viewer_like_state(db, [post], viewer_user_id)
+    _attach_recent_comments(db, [post])
+    return post
 
 
 def record_post_view(db: Session, user_id: int, post_id: int) -> None:

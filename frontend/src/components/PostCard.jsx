@@ -13,6 +13,7 @@ function getMediaShape(post) {
 
 const PostCard = memo(function PostCard({ post, currentUserId, onLike, onOpen, onProfile }) {
   const mediaShape = getMediaShape(post);
+  const isLiked = Boolean(post.liked_by_viewer);
 
   return (
     <article className={`post-tile post-tile--${mediaShape}`}>
@@ -46,7 +47,17 @@ const PostCard = memo(function PostCard({ post, currentUserId, onLike, onOpen, o
           </div>
         ) : null}
         <div className="post-tile__actions">
-          <button className="icon-action" onClick={() => onLike(post.id, currentUserId)} disabled={!currentUserId} type="button">{icons.heart}<span>{post.like_count}</span></button>
+          <button
+            aria-label={isLiked ? "Unlike post" : "Like post"}
+            aria-pressed={isLiked}
+            className={`icon-action ${isLiked ? "icon-action--active" : ""}`}
+            onClick={() => onLike(post.id, currentUserId)}
+            disabled={!currentUserId}
+            type="button"
+          >
+            {isLiked ? icons.heartFilled : icons.heart}
+            <span>{post.like_count}</span>
+          </button>
           <button className="icon-action" onClick={() => onOpen(post)} type="button">{icons.comment}<span>{post.comment_count}</span></button>
         </div>
       </div>

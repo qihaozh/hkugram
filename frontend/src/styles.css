@@ -887,6 +887,10 @@ button { cursor: pointer; }
   background: transparent;
   color: var(--muted);
 }
+.icon-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .icon-action:hover, .icon-action--active { color: var(--gold-strong); }
 
 .avatar-badge {
@@ -1035,18 +1039,10 @@ button { cursor: pointer; }
 .thread-image-wrap {
   width: 100%;
   padding: 0;
-  border: 0;
   margin: 1rem 0;
-  background: transparent;
   overflow: hidden;
-  border-radius: 24px;
-}
-.thread-image-wrap--interactive:not(:disabled) {
-  cursor: zoom-in;
-}
-.thread-image-wrap--interactive:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 3px;
+  border: 1px solid var(--border-soft);
+  background: var(--panel-soft);
 }
 .thread-image-wrap img {
   width: 100%;
@@ -1059,6 +1055,29 @@ button { cursor: pointer; }
   gap: 0.8rem;
   flex-wrap: wrap;
   align-items: center;
+}
+.thread-post-actions {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.thread-like-button {
+  min-height: 44px;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.thread-like-button:not(:disabled):hover,
+.thread-like-button.icon-action--active {
+  border-color: var(--gold);
+  box-shadow: var(--shadow);
+}
+.thread-post-hint {
+  color: var(--muted);
+  font-size: 0.92rem;
 }
 .thread-body, .comment-item p { margin: 0; line-height: 1.7; }
 .thread-form { margin: 1rem 0; }

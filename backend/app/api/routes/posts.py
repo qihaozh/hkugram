@@ -14,9 +14,17 @@ def get_feed(
     category: str | None = Query(default=None),
     limit: int = Query(default=9, ge=1, le=48),
     offset: int = Query(default=0, ge=0),
+    viewer_user_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    return crud.list_feed(db, sort_by=sort_by, category=category, limit=limit, offset=offset)
+    return crud.list_feed(
+        db,
+        sort_by=sort_by,
+        category=category,
+        limit=limit,
+        offset=offset,
+        viewer_user_id=viewer_user_id,
+    )
 
 
 @router.post("/posts", status_code=201)
@@ -29,8 +37,12 @@ def create_post(payload: schemas.PostCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/posts/{post_id}", response_model=schemas.PostRead)
-def get_post(post_id: int, db: Session = Depends(get_db)):
-    post = crud.get_post_detail(db, post_id)
+def get_post(
+    post_id: int,
+    viewer_user_id: int | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    post = crud.get_post_detail(db, post_id, viewer_user_id=viewer_user_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     return post

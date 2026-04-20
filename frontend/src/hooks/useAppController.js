@@ -32,6 +32,7 @@ function shuffleItems(items) {
 }
 
 export function useAppController() {
+  const [currentUser, setCurrentUser] = useState(null);
   const {
     category,
     feed,
@@ -44,10 +45,9 @@ export function useAppController() {
     resetFeed,
     sortBy,
     syncVisibleFeedCount,
-  } = useFeedController();
+  } = useFeedController("recent", "All", currentUser?.id ?? null);
   const { analytics, isAnalyticsLoading, loadAnalytics } = useAnalyticsController();
   const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedComments, setSelectedComments] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
@@ -143,34 +143,33 @@ export function useAppController() {
   }, [goMyProfile, navigate]);
 
   const openPost = useCallback(async (post) => {
-    const comments = await getPostComments(post.id);
-    setSelectedPost(post);
-    setSelectedComments(comments);
-    setIsThreadOpen(true);
-    if (currentUser) {
-      await recordPostView(post.id, currentUser.id);
-      await loadHistory(currentUser.username);
+    try {
+      const [postDetail, comments] = await Promise.all([
+        getPost(post.id, currentUser?.id),
+        getPostComments(post.id),
+      ]);
+      setSelectedPost(postDetail);
+      setSelectedComments(comments);
+      setIsThreadOpen(true);
+      if (currentUser) {
+        await recordPostView(post.id, currentUser.id);
+        await loadHistory(currentUser.username);
+      }
+      return postDetail;
+    } catch (error) {
+      setStatus(error.message);
+      return null;
     }
   }, [currentUser, loadHistory]);
 
   const openHistoryPost = useCallback(async (postId) => {
-    try {
-      const post = await getPost(postId);
-      await openPost(post);
-      setStatus("Opened post from history.");
-    } catch (error) {
-      setStatus(error.message);
-    }
+    const post = await openPost({ id: postId });
+    if (post) setStatus("Opened post from history.");
   }, [openPost]);
 
   const openPostById = useCallback(async (postId) => {
-    try {
-      const post = await getPost(postId);
-      await openPost(post);
-      setStatus("Opened post.");
-    } catch (error) {
-      setStatus(error.message);
-    }
+    const post = await openPost({ id: postId });
+    if (post) setStatus("Opened post.");
   }, [openPost]);
 
   useEffect(() => {
@@ -337,7 +336,11 @@ export function useAppController() {
       setSelectedPost((currentPost) => {
         if (!currentPost || currentPost.id !== postId) return currentPost;
         const refreshed = items.find((item) => item.id === postId);
-        return refreshed ?? { ...currentPost, like_count: likeResult.like_count };
+        return refreshed ?? {
+          ...currentPost,
+          like_count: likeResult.like_count,
+          liked_by_viewer: likeResult.liked,
+        };
       });
       if (route.view === "profile" && currentUser?.username) await loadProfile(currentUser.username);
       if (route.view === "user" && route.username) await loadProfile(route.username);

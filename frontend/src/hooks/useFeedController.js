@@ -3,7 +3,7 @@ import { getFeed } from "../api";
 
 const DEFAULT_FEED_PAGE_SIZE = 9;
 
-export function useFeedController(initialSort = "recent", initialCategory = "All") {
+export function useFeedController(initialSort = "recent", initialCategory = "All", viewerUserId = null) {
   const [feed, setFeed] = useState([]);
   const [sortBy, setSortBy] = useState(initialSort);
   const [category, setCategory] = useState(initialCategory);
@@ -16,6 +16,8 @@ export function useFeedController(initialSort = "recent", initialCategory = "All
   const categoryRef = useRef(initialCategory);
   const feedRef = useRef([]);
   const visibleFeedCountRef = useRef(DEFAULT_FEED_PAGE_SIZE);
+  const viewerUserIdRef = useRef(viewerUserId);
+  const previousViewerUserIdRef = useRef(viewerUserId);
 
   useEffect(() => {
     sortByRef.current = sortBy;
@@ -29,11 +31,16 @@ export function useFeedController(initialSort = "recent", initialCategory = "All
     feedRef.current = feed;
   }, [feed]);
 
+  useEffect(() => {
+    viewerUserIdRef.current = viewerUserId;
+  }, [viewerUserId]);
+
   const refreshFeed = useCallback(async ({
     nextSort = sortByRef.current,
     nextCategory = categoryRef.current,
     limit = visibleFeedCountRef.current,
     append = false,
+    viewerUserId: nextViewerUserId = viewerUserIdRef.current,
   } = {}) => {
     const requestId = activeFeedRequestRef.current + 1;
     activeFeedRequestRef.current = requestId;
@@ -43,7 +50,11 @@ export function useFeedController(initialSort = "recent", initialCategory = "All
 
     try {
       const nextOffset = append ? feedRef.current.length : 0;
-      const items = await getFeed(nextSort, nextCategory, { limit, offset: nextOffset });
+      const items = await getFeed(nextSort, nextCategory, {
+        limit,
+        offset: nextOffset,
+        viewerUserId: nextViewerUserId,
+      });
       if (activeFeedRequestRef.current === requestId) {
         setFeed((current) => (append ? [...current, ...items] : items));
         setHasMoreFeed(items.length === limit);
@@ -94,6 +105,22 @@ export function useFeedController(initialSort = "recent", initialCategory = "All
   const syncVisibleFeedCount = useCallback((nextCount) => {
     visibleFeedCountRef.current = Math.max(DEFAULT_FEED_PAGE_SIZE, nextCount);
   }, []);
+
+  useEffect(() => {
+    const previousViewerUserId = previousViewerUserIdRef.current ?? null;
+    const nextViewerUserId = viewerUserId ?? null;
+
+    if (previousViewerUserId === nextViewerUserId) return;
+
+    previousViewerUserIdRef.current = nextViewerUserId;
+    refreshFeed({
+      nextSort: sortByRef.current,
+      nextCategory: categoryRef.current,
+      limit: visibleFeedCountRef.current,
+      append: false,
+      viewerUserId: nextViewerUserId || undefined,
+    }).catch(() => {});
+  }, [refreshFeed, viewerUserId]);
 
   return {
     category,

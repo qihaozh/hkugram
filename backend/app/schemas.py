@@ -52,6 +52,7 @@ class PostRead(BaseModel):
     comment_count: int
     username: str
     display_name: str
+    liked_by_viewer: bool = False
     recent_comments: list["CommentRead"] = []
 
 

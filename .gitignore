@@ -2,6 +2,8 @@ requirements/*
 .venv/
 __pycache__/
 *.pyc
+*.tmp
+*.temp
 .env
 .pytest_cache/
 dist/

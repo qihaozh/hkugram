@@ -2,9 +2,11 @@ import { memo, useEffect, useState } from "react";
 import Avatar from "./Avatar";
 import CommentList from "./CommentList";
 import { formatDate } from "../lib/format";
+import { icons } from "../lib/icons";
 
 const ThreadDrawer = memo(function ThreadDrawer({ currentUser, post, comments, onComment, onClose, onLike, onProfile }) {
   const [draft, setDraft] = useState("");
+  const isLiked = Boolean(post?.liked_by_viewer);
 
   useEffect(() => {
     setDraft("");
@@ -29,18 +31,26 @@ const ThreadDrawer = memo(function ThreadDrawer({ currentUser, post, comments, o
           </div>
           <time>{formatDate(post.created_at)}</time>
         </button>
-        <button
-          className="thread-image-wrap thread-image-wrap--interactive"
-          disabled={!currentUser}
-          onDoubleClick={() => onLike(post.id, currentUser?.id)}
-          title={currentUser ? "Double click to like or unlike" : "Log in to like posts"}
-          type="button"
-        >
+        <div className="thread-image-wrap">
           <img src={post.image_url} alt={post.description} />
-        </button>
+        </div>
         <div className="thread-post-meta">
           <span className="post-chip">{post.category}</span>
           <div className="thread-post-stats"><span>{post.like_count} likes</span><span>{post.comment_count} comments</span></div>
+        </div>
+        <div className="thread-post-actions">
+          <button
+            aria-label={isLiked ? "Unlike post" : "Like post"}
+            aria-pressed={isLiked}
+            className={`icon-action thread-like-button ${isLiked ? "icon-action--active" : ""}`}
+            disabled={!currentUser}
+            onClick={() => onLike(post.id, currentUser?.id)}
+            type="button"
+          >
+            {isLiked ? icons.heartFilled : icons.heart}
+            <span>{isLiked ? "Liked" : "Like"}</span>
+          </button>
+          {!currentUser ? <span className="thread-post-hint">Log in to like posts.</span> : null}
         </div>
         <p className="thread-body">{post.description}</p>
         <form

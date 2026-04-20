@@ -20,5 +20,6 @@ export const icons = {
   ),
   shuffle: <svg viewBox="0 0 24 24"><path d="M16 4h4v4M20 4l-5.5 5.5M4 7h4l4 4m2 2 2 2h4M20 16v4h-4M20 20l-5.5-5.5M4 17h4l2-2" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
   heart: <svg viewBox="0 0 24 24"><path d="M12 20.5 4.7 13.6a4.9 4.9 0 0 1 6.9-7l.4.4.4-.4a4.9 4.9 0 0 1 6.9 7L12 20.5Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+  heartFilled: <svg viewBox="0 0 24 24"><path d="M12 20.5 4.7 13.6a4.9 4.9 0 0 1 6.9-7l.4.4.4-.4a4.9 4.9 0 0 1 6.9 7L12 20.5Z" fill="currentColor" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>,
   comment: <svg viewBox="0 0 24 24"><path d="M20 15a3 3 0 0 1-3 3H9l-5 3V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>,
 };

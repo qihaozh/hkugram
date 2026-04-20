@@ -1,18 +1,26 @@
 import { buildApiUrl, request, requestWithoutJson } from "./client";
 
 export function getFeed(sortBy = "recent", category, options = {}) {
-  const { limit = 9, offset = 0 } = options;
+  const { limit = 9, offset = 0, viewerUserId } = options;
   const query = new URLSearchParams({ sort_by: sortBy });
   if (category && category !== "All") {
     query.set("category", category);
   }
   query.set("limit", String(limit));
   query.set("offset", String(offset));
+  if (viewerUserId) {
+    query.set("viewer_user_id", String(viewerUserId));
+  }
   return request(`/feed?${query.toString()}`);
 }
 
-export function getPost(postId) {
-  return request(`/posts/${postId}`);
+export function getPost(postId, viewerUserId) {
+  const query = new URLSearchParams();
+  if (viewerUserId) {
+    query.set("viewer_user_id", String(viewerUserId));
+  }
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return request(`/posts/${postId}${suffix}`);
 }
 
 export function getPostComments(postId) {
