@@ -4,9 +4,7 @@ import { icons } from "../lib/icons";
 import NotificationButton from "./NotificationButton";
 
 export default function TopNav({ currentView, onChange, currentUser, onProfile, onLogout, onToggleTheme, theme }) {
-  const navItems = currentUser
-    ? NAV_ITEMS.filter((item) => !["profile", "settings"].includes(item.id))
-    : NAV_ITEMS;
+  const navItems = NAV_ITEMS.filter((item) => !["profile", "settings"].includes(item.id));
   const isDarkTheme = theme === "dark";
 
   const themeIcon = isDarkTheme ? (
@@ -59,7 +57,18 @@ export default function TopNav({ currentView, onChange, currentUser, onProfile, 
               </div>
             </div>
           </>
-        ) : <span className="muted-copy">Guest mode</span>}
+        ) : (
+          <div className="user-menu">
+            <button className="user-chip user-menu__trigger" onClick={onProfile} type="button" aria-haspopup="menu">
+              <Avatar username="guest" size="xs" />
+              <span>Guest Visitor</span>
+            </button>
+            <div className="user-menu__panel" role="menu">
+              <button className="user-menu__item" onClick={onProfile} type="button" role="menuitem">Guest Profile</button>
+              <button className="user-menu__item" onClick={() => onChange("settings")} type="button" role="menuitem">Log in / Register</button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
