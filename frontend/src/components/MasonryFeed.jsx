@@ -9,13 +9,16 @@ function updateItemSpan(node) {
   const container = node.parentElement;
   if (!container) return;
 
+  const card = node.firstElementChild;
+  if (!(card instanceof HTMLElement)) return;
+
   const styles = window.getComputedStyle(container);
   const rowHeight = Number.parseFloat(styles.getPropertyValue("grid-auto-rows"));
   const rowGap = Number.parseFloat(styles.getPropertyValue("row-gap"));
 
   if (!rowHeight) return;
 
-  const height = node.getBoundingClientRect().height;
+  const height = card.getBoundingClientRect().height;
   const span = Math.max(1, Math.ceil((height + rowGap) / (rowHeight + rowGap)));
   node.style.gridRowEnd = `span ${span}`;
 }
@@ -56,7 +59,19 @@ export default function MasonryFeed({
         scheduleMeasure();
       });
       nodes.forEach((node) => resizeObserver.observe(node));
+      nodes
+        .map((node) => node.firstElementChild)
+        .filter((node) => node instanceof HTMLElement)
+        .forEach((node) => resizeObserver.observe(node));
     }
+
+    const cleanupImageListeners = nodes.flatMap((node) => {
+      const images = Array.from(node.querySelectorAll("img"));
+      return images.map((image) => {
+        image.addEventListener("load", scheduleMeasure);
+        return () => image.removeEventListener("load", scheduleMeasure);
+      });
+    });
 
     window.addEventListener("resize", scheduleMeasure);
 
@@ -64,6 +79,7 @@ export default function MasonryFeed({
       window.cancelAnimationFrame(frameRef.current);
       window.removeEventListener("resize", scheduleMeasure);
       resizeObserver?.disconnect();
+      cleanupImageListeners.forEach((cleanup) => cleanup());
     };
   }, [keys]);
 
