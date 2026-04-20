@@ -124,7 +124,7 @@ button { cursor: pointer; }
   color: var(--gold);
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
 }
 .top-nav { display: flex; gap: 0.55rem; flex-wrap: wrap; justify-content: center; }
 .nav-icon-button {
@@ -213,7 +213,7 @@ button { cursor: pointer; }
   border-radius: 50%;
   background: var(--gold);
   color: var(--on-gold);
-  font-size: 10px;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 .notification-menu__panel {
@@ -271,7 +271,7 @@ button { cursor: pointer; }
 .notification-menu__copy {
   flex: 1;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 0.92rem;
   line-height: 1.4;
 }
 .notification-menu__actor {
@@ -285,7 +285,7 @@ button { cursor: pointer; }
 .notification-menu__time {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 0.8rem;
 }
 .user-menu {
   position: relative;
@@ -529,7 +529,7 @@ button { cursor: pointer; }
   color: var(--gold);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
 }
 .discovery-agent__form textarea {
   min-height: 92px;
@@ -551,7 +551,7 @@ button { cursor: pointer; }
   background: var(--surface-muted);
   color: var(--gold-strong);
   white-space: pre-wrap;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   line-height: 1.55;
 }
 .discovery-agent__links {
@@ -687,7 +687,7 @@ button { cursor: pointer; }
   background: var(--chip-overlay);
   border: 1px solid var(--border-soft);
   color: var(--gold-strong);
-  font-size: 0.68rem;
+  font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
 }
@@ -706,13 +706,13 @@ button { cursor: pointer; }
   text-align: left;
 }
 .author-row strong, .history-record strong, .comment-preview-line strong { color: var(--fg); }
-.author-row time { color: var(--muted); font-size: 0.82rem; }
+.author-row time { color: var(--muted); font-size: 0.88rem; }
 .author-row__meta { display: grid; gap: 0.12rem; min-width: 0; }
 .post-tile__title {
   padding: 0;
   text-align: left;
   line-height: 1.6;
-  font-size: 0.98rem;
+  font-size: 1.02rem;
   color: var(--fg);
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -726,7 +726,7 @@ button { cursor: pointer; }
   padding: 0;
   text-align: left;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.94rem;
 }
 .comment-preview-line span {
   overflow: hidden;
@@ -868,7 +868,7 @@ button { cursor: pointer; }
   text-align: left;
 }
 .profile-post-card__overlay p { margin: 0; line-height: 1.55; }
-.profile-post-card__overlay div { display: flex; gap: 1rem; color: var(--gold-strong); font-size: 0.88rem; }
+.profile-post-card__overlay div { display: flex; gap: 1rem; color: var(--gold-strong); font-size: 0.94rem; }
 
 .thread-overlay {
   position: fixed;
@@ -930,7 +930,7 @@ button { cursor: pointer; }
   color: var(--gold);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
 }
 .stack-form__fieldset {
   display: grid;
@@ -946,7 +946,7 @@ button { cursor: pointer; }
   color: var(--gold);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
 }
 input, textarea, select {
   width: 100%;
@@ -1042,7 +1042,7 @@ input:focus, textarea:focus, select:focus { border-bottom-color: var(--gold-stro
   color: var(--gold);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
 }
 .search-lab__form input {
   min-height: 52px;
