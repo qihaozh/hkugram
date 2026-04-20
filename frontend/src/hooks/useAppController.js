@@ -329,11 +329,16 @@ export function useAppController() {
   const handleLike = useCallback(async (postId, userId) => {
     if (!userId) return setStatus("Log in to like posts.");
     try {
-      await toggleLike(postId, userId);
-      await Promise.all([
+      const likeResult = await toggleLike(postId, userId);
+      const [items] = await Promise.all([
         refreshFeed({ nextSort: sortBy, nextCategory: category, limit: Math.max(feed.length, 9) }),
         loadAnalytics(),
       ]);
+      setSelectedPost((currentPost) => {
+        if (!currentPost || currentPost.id !== postId) return currentPost;
+        const refreshed = items.find((item) => item.id === postId);
+        return refreshed ?? { ...currentPost, like_count: likeResult.like_count };
+      });
       if (route.view === "profile" && currentUser?.username) await loadProfile(currentUser.username);
       if (route.view === "user" && route.username) await loadProfile(route.username);
     } catch (error) {

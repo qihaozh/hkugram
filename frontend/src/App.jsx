@@ -128,7 +128,7 @@ export default function App() {
         ) : null}
 
         {currentView === "analytics" ? (
-          <AnalyticsPage analytics={analytics} isLoading={isAnalyticsLoading} onOpenProfile={goUserPage} />
+          <AnalyticsPage analytics={analytics} isLoading={isAnalyticsLoading} onOpenPostById={openPostById} onOpenProfile={goUserPage} />
         ) : null}
 
         {currentView === "search" ? (
@@ -151,7 +151,7 @@ export default function App() {
           />
         ) : null}
       </main>
-      <ThreadDrawer currentUser={currentUser} post={isThreadOpen ? selectedPost : null} comments={selectedComments} onComment={handleComment} onClose={() => setIsThreadOpen(false)} onProfile={goUserPage} />
+      <ThreadDrawer currentUser={currentUser} post={isThreadOpen ? selectedPost : null} comments={selectedComments} onComment={handleComment} onClose={() => setIsThreadOpen(false)} onLike={handleLike} onProfile={goUserPage} />
     </div>
   );
 }

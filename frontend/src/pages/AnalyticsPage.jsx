@@ -1,6 +1,13 @@
 import SidebarUser from "../components/SidebarUser";
 
-export default function AnalyticsPage({ analytics, isLoading, onOpenProfile }) {
+export default function AnalyticsPage({ analytics, isLoading, onOpenPostById, onOpenProfile }) {
+  const handleTopPostKeyDown = (event, postId) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onOpenPostById(postId);
+    }
+  };
+
   if (isLoading && !analytics) {
     return (
       <section className="center-panel">
@@ -27,7 +34,29 @@ export default function AnalyticsPage({ analytics, isLoading, onOpenProfile }) {
         <section className="sidebar-card">
           <div className="card-header"><span className="eyebrow">Top Content</span><h2>Highest Engagement</h2></div>
           <div className="history-list">
-            {analytics?.top_posts?.map((post) => <article className="history-record" key={post.post_id}><strong>{post.display_name}</strong><span>{post.description}</span><time>{post.like_count} likes | {post.comment_count} comments</time></article>)}
+            {analytics?.top_posts?.map((post) => (
+              <article
+                className="history-record analytics-post-record"
+                key={post.post_id}
+                onClick={() => onOpenPostById(post.post_id)}
+                onKeyDown={(event) => handleTopPostKeyDown(event, post.post_id)}
+                role="button"
+                tabIndex={0}
+              >
+                <button
+                  className="analytics-post-record__author"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onOpenProfile(post.username);
+                  }}
+                  type="button"
+                >
+                  {post.display_name}
+                </button>
+                <span>{post.description}</span>
+                <time>{post.like_count} likes | {post.comment_count} comments</time>
+              </article>
+            ))}
           </div>
         </section>
       </section>

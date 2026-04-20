@@ -3,7 +3,7 @@ import Avatar from "./Avatar";
 import CommentList from "./CommentList";
 import { formatDate } from "../lib/format";
 
-const ThreadDrawer = memo(function ThreadDrawer({ currentUser, post, comments, onComment, onClose, onProfile }) {
+const ThreadDrawer = memo(function ThreadDrawer({ currentUser, post, comments, onComment, onClose, onLike, onProfile }) {
   const [draft, setDraft] = useState("");
 
   useEffect(() => {
@@ -29,7 +29,15 @@ const ThreadDrawer = memo(function ThreadDrawer({ currentUser, post, comments, o
           </div>
           <time>{formatDate(post.created_at)}</time>
         </button>
-        <div className="thread-image-wrap"><img src={post.image_url} alt={post.description} /></div>
+        <button
+          className="thread-image-wrap thread-image-wrap--interactive"
+          disabled={!currentUser}
+          onDoubleClick={() => onLike(post.id, currentUser?.id)}
+          title={currentUser ? "Double click to like or unlike" : "Log in to like posts"}
+          type="button"
+        >
+          <img src={post.image_url} alt={post.description} />
+        </button>
         <div className="thread-post-meta">
           <span className="post-chip">{post.category}</span>
           <div className="thread-post-stats"><span>{post.like_count} likes</span><span>{post.comment_count} comments</span></div>
