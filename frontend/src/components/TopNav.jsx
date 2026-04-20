@@ -45,18 +45,20 @@ export default function TopNav({ currentView, onChange, currentUser, onProfile, 
           {themeIcon}
         </button>
         {currentUser ? (
-          <div className="user-menu">
+          <>
             <NotificationButton currentUser={currentUser} onProfile={onProfile} />
-            <button className="user-chip user-menu__trigger" onClick={() => onProfile(currentUser.username)} type="button" aria-haspopup="menu">
-              <Avatar username={currentUser.username} size="xs" />
-              <span>{currentUser.display_name}</span>
-            </button>
-            <div className="user-menu__panel" role="menu">
-              <button className="user-menu__item" onClick={() => onProfile(currentUser.username)} type="button" role="menuitem">Profile</button>
-              <button className="user-menu__item" onClick={() => onChange("settings")} type="button" role="menuitem">Settings</button>
-              <button className="user-menu__item" onClick={onLogout} type="button" role="menuitem">Log out</button>
+            <div className="user-menu">
+              <button className="user-chip user-menu__trigger" onClick={() => onProfile(currentUser.username)} type="button" aria-haspopup="menu">
+                <Avatar username={currentUser.username} size="xs" />
+                <span>{currentUser.display_name}</span>
+              </button>
+              <div className="user-menu__panel" role="menu">
+                <button className="user-menu__item" onClick={() => onProfile(currentUser.username)} type="button" role="menuitem">Profile</button>
+                <button className="user-menu__item" onClick={() => onChange("settings")} type="button" role="menuitem">Settings</button>
+                <button className="user-menu__item" onClick={onLogout} type="button" role="menuitem">Log out</button>
+              </div>
             </div>
-          </div>
+          </>
         ) : <span className="muted-copy">Guest mode</span>}
       </div>
     </header>
