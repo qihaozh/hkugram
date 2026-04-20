@@ -67,31 +67,17 @@ export default function NotificationButton({ currentUser, onProfile }) {
   };
 
   return (
-    <div ref={dropdownRef} style={{ position: "relative", zIndex: 9999 }}>
+    <div ref={dropdownRef} className="notification-menu">
       <button 
         type="button" 
         className={`nav-icon-button ${isOpen ? "nav-icon-button--active" : ""}`}
         onClick={handleToggle}
         title="Notifications"
       >
-        <span style={{ position: "relative" }}>
+        <span className="notification-menu__icon">
           🔔
           {unreadCount > 0 && (
-            <span style={{
-              position: "absolute",
-              top: "-5px",
-              right: "-5px",
-              backgroundColor: "#D4AF37",
-              color: "#0A0A0A",
-              borderRadius: "50%",
-              width: "16px",
-              height: "16px",
-              fontSize: "10px",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}>
+            <span className="notification-menu__badge">
               {unreadCount}
             </span>
           )}
@@ -99,49 +85,31 @@ export default function NotificationButton({ currentUser, onProfile }) {
       </button>
 
       {isOpen && (
-        <div style={{
-          position: "absolute",
-          top: "100%",
-          right: "0",
-          width: "320px",
-          maxHeight: "400px",
-          overflowY: "auto",
-          backgroundColor: "#141414",
-          border: "1px solid rgba(212, 175, 55, 0.3)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-          zIndex: 50,
-          marginTop: "8px",
-        }}>
-          <div style={{ padding: "16px", borderBottom: "1px solid rgba(212, 175, 55, 0.2)" }}>
-            <h3 style={{ margin: 0, textTransform: "uppercase", letterSpacing: "1px", color: "#D4AF37" }}>
+        <div className="notification-menu__panel">
+          <div className="notification-menu__header">
+            <h3>
               Notifications
             </h3>
           </div>
           {notifications.length === 0 ? (
-            <div style={{ padding: "32px 16px", textAlign: "center", color: "#888" }}>
+            <div className="notification-menu__empty">
               No notifications yet
             </div>
           ) : (
-            <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            <ul className="notification-menu__list">
               {notifications.map((notif) => (
-                <li key={notif.id} style={{ 
-                  padding: "12px 16px", 
-                  borderBottom: "1px solid #222",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  opacity: notif.is_read ? 0.7 : 1,
-                  backgroundColor: notif.is_read ? "transparent" : "rgba(212, 175, 55, 0.05)"
-                }}>
-                  <div style={{ cursor: "pointer" }} onClick={() => onProfile(notif.actor_username)}>
-    <Avatar username={notif.actor_username} size="sm" />
-  </div>
-                  <div style={{ flex: 1, fontSize: "14px", lineHeight: "1.4" }}>
-                    <div style={{ cursor: "pointer" }}>
-                      <strong onClick={() => onProfile(notif.actor_username)} style={{ color: "#F2F0E4" }}>{notif.actor_display_name}</strong>{" "}
-                      <span style={{ color: "#888" }}>{renderMessage(notif)}</span>
+                <li key={notif.id} className={`notification-menu__item ${notif.is_read ? "notification-menu__item--read" : ""}`}>
+                  <button className="notification-menu__avatar" type="button" onClick={() => onProfile(notif.actor_username)}>
+                    <Avatar username={notif.actor_username} size="sm" />
+                  </button>
+                  <div className="notification-menu__copy">
+                    <div>
+                      <button className="notification-menu__actor" type="button" onClick={() => onProfile(notif.actor_username)}>
+                        {notif.actor_display_name}
+                      </button>{" "}
+                      <span>{renderMessage(notif)}</span>
                     </div>
-                    <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                    <div className="notification-menu__time">
                       {formatCompactDate(notif.created_at)}
                     </div>
                   </div>
