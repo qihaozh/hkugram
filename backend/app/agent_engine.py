@@ -68,7 +68,7 @@ Useful post result columns:
 
 
 SYSTEM_PROMPT = f"""
-You are HKUgram's database assistant. Convert the user's natural-language question into one MySQL SELECT query.
+You are HKUgram's database assistant. Convert the user's natural-language question into one PostgreSQL SELECT query.
 
 Rules:
 - Output JSON only with keys: sql, explanation.
